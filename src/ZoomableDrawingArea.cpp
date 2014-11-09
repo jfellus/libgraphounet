@@ -28,7 +28,9 @@ typedef struct _callbacks {
 	}
 
 	static gboolean _on_realize (GtkWidget *widget, gpointer   user_data) {
-		((ZoomableDrawingArea*)user_data)->on_realizes();
+		DBGV(user_data);
+		DBG(typeid(user_data).name());
+		//((ZoomableDrawingArea*)user_data)->on_realizes();
 		return true;
 	}
 
