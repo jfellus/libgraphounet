@@ -104,4 +104,20 @@ public:
 inline std::ostream& operator<<(std::ostream& os, Component* a) {a->dump(os);return os;}
 
 
+
+
+/////////////////////
+// DUMMY COMPONENT //
+/////////////////////
+
+class DummyComponent : public Component {
+public:
+	DummyComponent() : Component(true) {}
+	virtual ~DummyComponent() {}
+
+	virtual void render(Graphics& g) {}
+
+	virtual Rectangle get_bounds() { return Rectangle(x,y,10,10);}
+};
+
 #endif /* COMPONENT_H_ */

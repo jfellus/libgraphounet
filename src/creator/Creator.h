@@ -21,7 +21,7 @@ public:
 
 	// Lifecycle
 
-	void start(ZoomableDrawingArea* canvas);
+	virtual void start(ZoomableDrawingArea* canvas);
 	virtual void create(double x, double y);
 	virtual void end();
 
