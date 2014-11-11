@@ -41,7 +41,7 @@ public:
 
 	virtual void transform(Graphics& g) {} // No transform !
 
-	Bezier bezier_absolute() {
+	inline Bezier bezier_absolute() {
 		Vector2D cs = src->center(); Vector2D cd = dst->center();
 		return Bezier(cs.x, cs.y, 	cs.x*(1-b->x2) + cd.x*b->x2, cs.y*(1-b->y2) + cd.y*b->y2,
 						cs.x*(1-b->x3) + cd.x*b->x3, cs.y*(1-b->y3) + cd.y*b->y3,   cd.x, cd.y);

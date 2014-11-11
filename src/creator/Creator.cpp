@@ -31,7 +31,6 @@ void Creator::create(double x, double y) {
 void Creator::on_mouse_move(GdkEventMotion* e) {
 	x = canvas->mouse_to_doc_x(e->x);
 	y = canvas->mouse_to_doc_y(e->y);
-	repaint();
 }
 
 void Creator::on_click(GdkEventButton* e) {

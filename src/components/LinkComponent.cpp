@@ -58,7 +58,6 @@ void LinkComponent::translate(double dx, double dy) {
 		if(imoving==0) bezierHandle1->translate(dx,dy);
 		else if(imoving==1) bezierHandle2->translate(dx,dy);
 	}
-	repaint();
 }
 
 void LinkComponent::click(double x, double y) {

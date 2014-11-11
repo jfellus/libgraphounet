@@ -10,41 +10,29 @@
 #include "components/BoundingBox.h"
 #include <typeinfo>
 
+
+///////////////
+// CALLBACKS //
+///////////////
+
 typedef struct _callbacks {
-	static gboolean _on_mouse_move (GtkWidget *widget, GdkEventMotion  *event, gpointer   user_data) {
-		return ((ZoomableDrawingArea*)user_data)->on_mouse_move(event);
-	}
-
-	static gboolean _on_click (GtkWidget *widget, GdkEventButton  *event, gpointer   user_data) {
-		return((ZoomableDrawingArea*)user_data)->on_click(event);
-	}
-
-	static gboolean _on_unclick (GtkWidget *widget, GdkEventButton  *event, gpointer   user_data) {
-		return ((ZoomableDrawingArea*)user_data)->on_unclick(event);
-	}
-
-	static gboolean _on_scroll (GtkWidget *widget, GdkEventScroll  *event, gpointer   user_data) {
-		return ((ZoomableDrawingArea*)user_data)->on_scroll(event);
-	}
-
-	static gboolean _on_realize (GtkWidget *widget, gpointer   user_data) {
-		//((ZoomableDrawingArea*)user_data)->on_realizes();
-		return true;
-	}
-
-	static gboolean _on_draw (GtkWidget    *widget, cairo_t *cr,  gpointer      user_data) {
-		return ((ZoomableDrawingArea*)user_data)->on_draw(cr);
-	}
-
-	static gboolean _on_key (GtkWidget *widget, GdkEventKey  *event, gpointer   user_data) {
-		return ((ZoomableDrawingArea*)user_data)->on_key(event);
-	}
+	static gboolean _on_mouse_move (GtkWidget *widget, GdkEventMotion  *event, gpointer   user_data) {		return ((ZoomableDrawingArea*)user_data)->on_mouse_move(event);	}
+	static gboolean _on_click (GtkWidget *widget, GdkEventButton  *event, gpointer   user_data) {		return((ZoomableDrawingArea*)user_data)->on_click(event);	}
+	static gboolean _on_unclick (GtkWidget *widget, GdkEventButton  *event, gpointer   user_data) {		return ((ZoomableDrawingArea*)user_data)->on_unclick(event);	}
+	static gboolean _on_scroll (GtkWidget *widget, GdkEventScroll  *event, gpointer   user_data) {		return ((ZoomableDrawingArea*)user_data)->on_scroll(event);	}
+	static gboolean _on_realize (GtkWidget *widget, gpointer   user_data) {		return true;	}
+	static gboolean _on_draw (GtkWidget    *widget, cairo_t *cr,  gpointer      user_data) {		return ((ZoomableDrawingArea*)user_data)->on_draw(cr);	}
+	static gboolean _on_key (GtkWidget *widget, GdkEventKey  *event, gpointer   user_data) {		return ((ZoomableDrawingArea*)user_data)->on_key(event);	}
 } _callbacks;
 
+
+
+//////////////////
+// CONSTRUCTION //
+//////////////////
+
 static ZoomableDrawingArea* _cur = 0;
-ZoomableDrawingArea* ZoomableDrawingArea::cur() {
-	return _cur;
-}
+ZoomableDrawingArea* ZoomableDrawingArea::cur() {	return _cur; }
 
 
 ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_new()){
@@ -54,6 +42,10 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 	_zoom = 1;
 	offsetx = offsety = 0;
 	draggedComponent = 0;
+
+	gtk_widget_set_size_request(GTK_WIDGET(widget), 800,600);
+
+
 	set_events(GDK_ALL_EVENTS_MASK);
 	gtk_widget_set_can_focus(widget, TRUE);
 	g_signal_connect(G_OBJECT(widget), "draw", G_CALLBACK(_callbacks::_on_draw), this);
@@ -69,10 +61,211 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 	multi_selectionBox = new BoundingBox(Rectangle());
 }
 
-ZoomableDrawingArea::~ZoomableDrawingArea() {
+ZoomableDrawingArea::~ZoomableDrawingArea() {}
 
+
+
+///////////////
+// ACCESSORS //
+///////////////
+
+
+Component* ZoomableDrawingArea::get_selectable_component_at(double x, double y) {
+	for(int i=components_topified.size()-1; i>=0; i--) {
+		Component* c = components_topified[i];
+		if(c->visible && c->hasPoint(x,y)) return c;
+	}
+	for(int i=components_selectables.size()-1; i>=0; i--) {
+		Component* c = components_selectables[i];
+		if(c->visible && c->hasPoint(x,y)) return c;
+	}
+	return 0;
 }
 
+
+
+/////////////
+// METHODS //
+/////////////
+
+void ZoomableDrawingArea::add(Component* c) {
+	components.push_back(c);
+	c->set_canvas(this);
+	update_layers();
+}
+
+void ZoomableDrawingArea::remove(Component* c) {
+	remove_selectable(c);
+	if(c->bSelected) remove_selection(c);
+	vector_remove(components,c);
+	c->set_canvas(0);
+}
+
+
+////////////////
+// NAVIGATION //
+////////////////
+
+void ZoomableDrawingArea::zoom(float fzoom, double cx, double cy) {
+	cx =  (cx - offsetx)/ _zoom ;
+	cy =  (cy - offsety)/ _zoom ;
+	double oldzoom = _zoom;
+	_zoom *= 1 + fzoom;
+	offsetx -= cx*(_zoom - oldzoom);
+	offsety -= cy*(_zoom - oldzoom);
+	repaint();
+}
+
+void ZoomableDrawingArea::zoom(Component* c) {	zoom(c->get_bounds()); }
+
+void ZoomableDrawingArea::zoom(const Rectangle& r) {
+	double w = get_width()-20;
+	double h = get_height()-20;
+	if(!w || !h) return;
+	_zoom = MIN(h/r.h, w/r.w);
+
+	offsetx= -r.x*_zoom + 10 + MAX(0,(w - r.w*_zoom)/2);
+	offsety= -r.y*_zoom + 10 + MAX(0,(h - r.h*_zoom)/2);
+	repaint();
+}
+
+void ZoomableDrawingArea::zoom_all() {
+	if(components.empty()) return;
+	Rectangle r = components[0]->get_bounds();
+	for(uint i=1; i<components.size(); i++) {
+		if(components[i]->visible) r.add(components[i]->get_bounds());
+	}
+	zoom(r);
+}
+
+
+
+///////////////
+// SELECTION //
+///////////////
+
+void ZoomableDrawingArea::select_all() {
+	isSelecting = true;
+	for(uint i=0; i<components_selectables.size(); i++) if(components_selectables[i]->visible) components_selectables[i]->select(false);
+	isSelecting = false;
+	fire_selection_change();
+	repaint();
+}
+
+void ZoomableDrawingArea::select(Component* c, bool single) {
+	c->select(single);
+	fire_selection_change();
+	repaint();
+}
+
+void ZoomableDrawingArea::unselect(Component* c)			{
+	c->unselect();
+	fire_selection_change();
+	repaint();
+}
+
+void ZoomableDrawingArea::toggle_select(Component* c) 		{
+	c->toggle_select();
+	fire_selection_change();
+	repaint();
+}
+
+void ZoomableDrawingArea::select(double x1, double y1, double x2, double y2) {
+	isSelecting = true;
+	Rectangle r(x1,y1,x2-x1,y2-y1);
+	for(uint i=0; i<components_topified.size(); i++) {
+		Component* c = components_topified[i];
+		if(!c->visible) continue;
+		if(c->is_in(r) && !c->is_selected()) c->select(false);
+	}
+	for(uint i=0; i<components_selectables.size(); i++) {
+		Component* c = components_selectables[i];
+		if(!c->visible) continue;
+		if(c->is_in(r) && !c->is_selected()) c->select(false);
+	}
+	isSelecting = false;
+	fire_selection_change();
+	repaint();
+}
+
+
+void ZoomableDrawingArea::unselect_all() {
+	isSelecting = true;
+	while(!components_topified.empty()) untopify(components_topified[0]);
+	while(!selection.empty()) selection[0]->unselect();
+	selectionBox->set_bounds(Rectangle());
+	isSelecting = false;
+	fire_selection_change();
+	repaint();
+}
+
+void ZoomableDrawingArea::add_selection(Component* c) {
+	selection.push_back(c);
+	selectionBox->set_bounds(&selection);
+}
+
+void ZoomableDrawingArea::remove_selection(Component* c) {
+	vector_remove(selection, c);
+	selectionBox->set_bounds(&selection);
+	if(selection.empty()) selectionBox->set_bounds(Rectangle());
+}
+
+
+
+
+/////////////////////
+// TRANSFORMATIONS //
+/////////////////////
+
+void ZoomableDrawingArea::translate_selection(double dx, double dy) {
+	for(uint i=0; i<selection.size(); i++) {
+		selection[i]->translate(dx,dy);
+	}
+	grab_focus();
+	repaint();
+}
+
+
+
+////////////
+// LAYERS //
+////////////
+
+static bool _drawingLayerComp(Component* c1, Component* c2) {	return c1->layer < c2->layer;}
+static bool _selectionLayerComp(Component* c1, Component* c2) {	return c1->selectionLayer < c2->selectionLayer;}
+
+void ZoomableDrawingArea::update_layers() {
+	std::sort (components.begin(), components.end(), _drawingLayerComp);
+	repaint();
+}
+
+void ZoomableDrawingArea::add_selectable(Component* c) {
+	components_selectables.push_back(c);
+	std::sort (components_selectables.begin(), components_selectables.end(), _selectionLayerComp);
+}
+
+void ZoomableDrawingArea::remove_selectable(Component* c) {vector_remove(components_selectables,c);}
+
+void ZoomableDrawingArea::topify(Component* c) {	components_topified.push_back(c);}
+void ZoomableDrawingArea::untopify(Component* c) {	vector_remove(components_topified,c);}
+
+
+
+//////////////
+// CREATORS //
+//////////////
+
+void ZoomableDrawingArea::start_creator(Creator* c) {creator = c; c->start(this); repaint();}
+void ZoomableDrawingArea::end_creator() {
+	delete creator;
+	creator = NULL; repaint();
+}
+
+
+
+////////////
+// EVENTS //
+////////////
 
 void ZoomableDrawingArea::on_realizes() {
 	grab_focus();
@@ -95,10 +288,10 @@ bool ZoomableDrawingArea::on_key(GdkEventKey* event) {
 
 		double a = 3;
 		if(event->state & GDK_SHIFT_MASK) a *= 5;
-		if(event->keyval==GDK_KEY_Left) translate_selection(-a/_zoom, 0);
-		if(event->keyval==GDK_KEY_Right) translate_selection(a/_zoom, 0);
-		if(event->keyval==GDK_KEY_Up) translate_selection(0,-a/_zoom);
-		if(event->keyval==GDK_KEY_Down) translate_selection(0,a/_zoom);
+		if(event->keyval==GDK_KEY_Left) 	{translate_selection(-a/_zoom, 0);  fire_change_event();}
+		if(event->keyval==GDK_KEY_Right) 	{translate_selection(a/_zoom, 0);	fire_change_event();}
+		if(event->keyval==GDK_KEY_Up) 	{	translate_selection(0,-a/_zoom);	fire_change_event();}
+		if(event->keyval==GDK_KEY_Down) 	{translate_selection(0,a/_zoom);	fire_change_event();}
 	}
 
 	for(uint i=0; i<keylisteners.size(); i++) {
@@ -149,6 +342,7 @@ bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
 
 	if(creator) {
 		creator->on_unclick(event);
+		repaint();
 		return true;
 	}
 
@@ -163,6 +357,8 @@ bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
 			draggedComponent = get_selectable_component_at(mousePosDoc.x, mousePosDoc.y);
 			if(draggedComponent) toggle_select(draggedComponent);
 		}
+
+		if(isDragging) fire_change_event();
 
 		draggedComponent = 0;
 		isDragging = false;
@@ -183,7 +379,10 @@ bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
 		move(event->x - oldx_mouse, event->y - oldy_mouse);
 	}
 
-	else if(creator) { creator->on_mouse_move(event); }
+	else if(creator) {
+		creator->on_mouse_move(event);
+		repaint();
+	}
 
 	else if(event->state & GDK_BUTTON1_MASK) {
 		isDragging = true;
@@ -191,8 +390,8 @@ bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
 			translate_selection(mousePosDoc.x-oldx, mousePosDoc.y-oldy);
 		} else {
 			multi_selectionBox->set_bounds(Rectangle(drag_start_x, drag_start_y,mousePosDoc.x-drag_start_x, mousePosDoc.y-drag_start_y));
+			repaint();
 		}
-		repaint();
 	}
 	oldx = mousePosDoc.x; oldy = mousePosDoc.y;
 	oldx_mouse = event->x; oldy_mouse = event->y;
@@ -221,9 +420,7 @@ bool ZoomableDrawingArea::on_draw(cairo_t* cr) {
 	g.scale(_zoom);
 
 	g.set_color(RGB_BLACK);
-	for(uint i=0; i<components.size(); i++) {
-		components[i]->draw(g);
-	}
+	for(uint i=0; i<components.size(); i++) components[i]->draw(g);
 
 	if(selectionRenderingMode==SELECTION_ShowSingleBoundingBox && selectionBox) selectionBox->draw(g);
 	if(multi_selectionBox) multi_selectionBox->draw(g);
@@ -232,168 +429,13 @@ bool ZoomableDrawingArea::on_draw(cairo_t* cr) {
 	return FALSE;
 }
 
-
-
-void ZoomableDrawingArea::zoom(float fzoom, double cx, double cy) {
-	cx =  (cx - offsetx)/ _zoom ;
-	cy =  (cy - offsety)/ _zoom ;
-	double oldzoom = _zoom;
-	_zoom *= 1 + fzoom;
-	offsetx -= cx*(_zoom - oldzoom);
-	offsety -= cy*(_zoom - oldzoom);
-	repaint();
+void ZoomableDrawingArea::fire_selection_change() {
+	for(uint i=0; i<selectionListeners.size(); i++) selectionListeners[i]->on_selection_change();
 }
 
-
-static bool _drawingLayerComp(Component* c1, Component* c2) {
-	return c1->layer < c2->layer;
+void ZoomableDrawingArea::fire_change_event() {
+	for(uint i=0; i<changeListeners.size(); i++) changeListeners[i]->on_canvas_change();
 }
 
-static bool _selectionLayerComp(Component* c1, Component* c2) {
-	return c1->selectionLayer < c2->selectionLayer;
-}
-
-void ZoomableDrawingArea::update_layers() {
-	std::sort (components.begin(), components.end(), _drawingLayerComp);
-	repaint();
-}
-
-void ZoomableDrawingArea::add(Component* c) {
-	components.push_back(c);
-	c->set_canvas(this);
-	update_layers();
-}
-
-void ZoomableDrawingArea::remove(Component* c) {
-	remove_selectable(c);
-	if(c->bSelected) remove_selection(c);
-	vector_remove(components,c); c->set_canvas(0); repaint();
-}
-
-void ZoomableDrawingArea::add_selectable(Component* c) {
-	components_selectables.push_back(c);
-	std::sort (components_selectables.begin(), components_selectables.end(), _selectionLayerComp);
-}
-
-void ZoomableDrawingArea::remove_selectable(Component* c) {vector_remove(components_selectables,c);}
-
-void ZoomableDrawingArea::topify(Component* c) {
-	components_topified.push_back(c);
-}
-void ZoomableDrawingArea::untopify(Component* c) {
-	vector_remove(components_topified,c);
-}
-
-
-Component* ZoomableDrawingArea::get_selectable_component_at(double x, double y) {
-	for(int i=components_topified.size()-1; i>=0; i--) {
-		Component* c = components_topified[i];
-		if(c->visible && c->hasPoint(x,y)) return c;
-	}
-	for(int i=components_selectables.size()-1; i>=0; i--) {
-		Component* c = components_selectables[i];
-		if(c->visible && c->hasPoint(x,y)) return c;
-	}
-	return 0;
-}
-
-void ZoomableDrawingArea::select_all() {
-	isSelecting = true;
-	for(uint i=0; i<components_selectables.size(); i++) if(components_selectables[i]->visible) select(components_selectables[i], false);
-	isSelecting = false;
-	for(uint i=0; i<selectionListeners.size(); i++) selectionListeners[i]->on_selection_event(NULL);
-}
-
-void ZoomableDrawingArea::select(Component* c, bool single) {
-	c->select(single);
-}
-
-void ZoomableDrawingArea::toggle_select(Component* c) {
-	c->toggle_select();
-}
-
-
-void ZoomableDrawingArea::select(double x1, double y1, double x2, double y2) {
-	isSelecting = true;
-	Rectangle r(x1,y1,x2-x1,y2-y1);
-	for(uint i=0; i<components_topified.size(); i++) {
-		Component* c = components_topified[i];
-		if(!c->visible) continue;
-		if(c->get_bounds().is_in(r)) select(c, false);
-	}
-	for(uint i=0; i<components_selectables.size(); i++) {
-		Component* c = components_selectables[i];
-		if(!c->visible) continue;
-		if(c->get_bounds().is_in(r)) select(c, false);
-	}
-	isSelecting = false;
-	for(uint i=0; i<selectionListeners.size(); i++) selectionListeners[i]->on_selection_event(NULL);
-}
-
-void ZoomableDrawingArea::unselect(Component* c) {
-	c->unselect();
-}
-
-void ZoomableDrawingArea::unselect_all() {
-	isSelecting = true;
-	while(!components_topified.empty()) untopify(components_topified[0]);
-	while(!selection.empty()) selection[0]->unselect();
-	selectionBox->set_bounds(Rectangle());
-	isSelecting = false;
-	repaint();
-	for(uint i=0; i<selectionListeners.size(); i++) selectionListeners[i]->on_selection_event(NULL);
-}
-
-void ZoomableDrawingArea::add_selection(Component* c) {
-	selection.push_back(c);
-	selectionBox->set_bounds(&selection);
-	repaint();
-}
-
-void ZoomableDrawingArea::remove_selection(Component* c) {
-	vector_remove(selection, c);
-	selectionBox->set_bounds(&selection);
-	if(selection.empty()) selectionBox->set_bounds(Rectangle());
-	repaint();
-}
-
-
-void ZoomableDrawingArea::translate_selection(double dx, double dy) {
-	for(uint i=0; i<selection.size(); i++) {
-		selection[i]->translate(dx,dy);
-	}
-	grab_focus();
-}
-
-
-void ZoomableDrawingArea::zoom_all() {
-	if(components.empty()) return;
-	Rectangle r = components[0]->get_bounds();
-	for(uint i=1; i<components.size(); i++) {
-		if(components[i]->visible) r.add(components[i]->get_bounds());
-	}
-	zoom(r);
-}
-
-void ZoomableDrawingArea::zoom(Component* c) {
-	zoom(c->get_bounds());
-}
-
-void ZoomableDrawingArea::zoom(const Rectangle& r) {
-	double w = get_width()-20;
-	double h = get_height()-20;
-	if(!w || !h) return;
-	_zoom = MIN(h/r.h, w/r.w);
-
-	offsetx= -r.x*_zoom + 10 + MAX(0,(w - r.w*_zoom)/2);
-	offsety= -r.y*_zoom + 10 + MAX(0,(h - r.h*_zoom)/2);
-	repaint();
-}
-
-void ZoomableDrawingArea::start_creator(Creator* c) {creator = c; c->start(this); repaint();}
-void ZoomableDrawingArea::end_creator() {
-	delete creator;
-	creator = NULL; repaint();
-}
 
 

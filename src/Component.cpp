@@ -11,6 +11,11 @@
 #include "Component.h"
 #include "components/BoundingBox.h"
 
+
+//////////////////
+// CONSTRUCTION //
+//////////////////
+
 Component::Component(int layer) {
 	this->auto_addToCanvas = true;
 	 x=y=0; canvas = 0;
@@ -33,20 +38,23 @@ Component::~Component() {
 	if(auto_addToCanvas) canvas->remove(this);
 }
 
-void Component::repaint() {
-	if(canvas) canvas->repaint();
-}
+
+
+///////////////
+// SELECTION //
+///////////////
+
 
 void Component::select(bool single) {
 	if(bSelected) return;
-	if(!selectionBox && canvas->selectionRenderingMode==SELECTION_ShowSingleBoundingBox) selectionBox = new BoundingBox(this);
-	if(!bSelected) canvas->add_selection(this);
+	if(!selectionBox && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_ShowSingleBoundingBox) selectionBox = new BoundingBox(this);
+	canvas->add_selection(this);
 	ISelectable::select();
 }
 
 void Component::unselect() {
 	if(!bSelected) return;
-	if(bSelected) canvas->remove_selection(this);
+	canvas->remove_selection(this);
 	ISelectable::unselect();
 }
 
@@ -55,25 +63,33 @@ void Component::set_selectable(bool b) {
 	else canvas->remove_selectable(this);
 }
 
+
+
+///////////////
+// RENDERING //
+///////////////
+
 void Component::draw(Graphics& g) {
 	if(!visible) return;
 
 	g.save();
 	g.clear_path();
 	transform(g);
-	if(canvas && canvas->selectionRenderingMode==SELECTION_Colored && is_selected())
+	if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_Colored && is_selected())
 		g.map_color(RGB_BLACK, RGB_RED);
 	render(g);
 		g.unmap_color(RGB_BLACK);
 	g.restore();
-	if(canvas && canvas->selectionRenderingMode==SELECTION_ShowComponentsBoundingBoxes && is_selected())
+	if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_ShowComponentsBoundingBoxes && is_selected())
 		selectionBox->draw(g);
 }
 
-std::ostream& operator<<(std::ostream& os, Component* a) {
-	a->dump(os);
-	return os;
-}
+
+
+
+/////////
+// CSS //
+/////////
 
 bool Component::has_class(const std::string& c) {
 	return css_class.find(std::string(" ") + c + " ") != std::string::npos;

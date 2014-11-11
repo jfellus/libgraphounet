@@ -18,9 +18,15 @@ public:
 	ISelectable() {}
 	virtual ~ISelectable() {}
 
+
+	// Accessors
+
 	bool is_selected() {return bSelected;}
 
 	void add_selection_listener(ISelectionListener* sl) {selectionListeners.push_back(sl);}
+
+
+	// Methods
 
 	virtual void select(bool single = true) {
 		if(bSelected) return;
@@ -38,16 +44,20 @@ public:
 		}
 	}
 
+	virtual void toggle_select() {
+		if(bSelected) unselect();
+		else select();
+	}
+
+
+	// Events
+
 	virtual void on_dbl_click(GdkEventButton* e) {
 		for(uint i=0; i<selectionListeners.size(); i++) {
 			selectionListeners[i]->on_dbl_click(this, e);
 		}
 	}
 
-	virtual void toggle_select() {
-		if(bSelected) unselect();
-		else select();
-	}
 
 };
 
