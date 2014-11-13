@@ -13,3 +13,4 @@ Command::Command() {
 
 std::list<Command*> CommandStack::undoables;
 std::list<Command*> CommandStack::redoables;
+std::vector<CommandStack::Listener*> CommandStack::listeners;

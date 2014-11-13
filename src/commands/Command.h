@@ -25,9 +25,19 @@ public:
 
 class CommandStack {
 public:
+	class Listener {
+	public:
+		Listener() {}
+		virtual ~Listener() {}
+		virtual void on_command_stack_change()  = 0;
+	};
+public:
 	static std::list<Command*> undoables;
 	static std::list<Command*> redoables;
+	static std::vector<Listener*> listeners;
 public:
+
+	static void add_listener(Listener* l) {listeners.push_back(l);}
 
 	static void add(Command* c) {
 		undoables.push_back(c);
@@ -35,6 +45,7 @@ public:
 			Command *c = redoables.front();  redoables.pop_front();
 			delete c;
 		}
+		for(uint i=0; i<listeners.size(); i++) listeners[i]->on_command_stack_change();
 	}
 
 	static void redo() {
@@ -42,6 +53,7 @@ public:
 		Command* c = redoables.back(); redoables.pop_back();
 		undoables.push_back(c);
 		c->execute();
+		for(uint i=0; i<listeners.size(); i++) listeners[i]->on_command_stack_change();
 	}
 
 	static void undo() {
@@ -49,6 +61,7 @@ public:
 		Command* c = undoables.back(); undoables.pop_back();
 		redoables.push_back(c);
 		c->undo();
+		for(uint i=0; i<listeners.size(); i++) listeners[i]->on_command_stack_change();
 	}
 
 	static bool can_redo() {return !redoables.empty();}
