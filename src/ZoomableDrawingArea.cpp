@@ -9,7 +9,7 @@
 #include "util/utils.h"
 #include "components/BoundingBox.h"
 #include <typeinfo>
-
+#include "commands/CommandTranslateSelection.h"
 
 ///////////////
 // CALLBACKS //
@@ -24,6 +24,10 @@ typedef struct _callbacks {
 	static gboolean _on_draw (GtkWidget    *widget, cairo_t *cr,  gpointer      user_data) {		return ((ZoomableDrawingArea*)user_data)->on_draw(cr);	}
 	static gboolean _on_key (GtkWidget *widget, GdkEventKey  *event, gpointer   user_data) {		return ((ZoomableDrawingArea*)user_data)->on_key(event);	}
 } _callbacks;
+
+static void on_undo() { CommandStack::undo(); }
+static void on_redo() { CommandStack::redo(); }
+
 
 
 
@@ -59,6 +63,9 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 
 	selectionBox = new BoundingBox(&selection);
 	multi_selectionBox = new BoundingBox(Rectangle());
+
+	add_key_listener(new IKeyListener(GDK_KEY_z, GDK_CONTROL_MASK, on_undo));
+	add_key_listener(new IKeyListener(GDK_KEY_Z, GDK_CONTROL_MASK | GDK_SHIFT_MASK, on_redo));
 }
 
 ZoomableDrawingArea::~ZoomableDrawingArea() {}
@@ -285,13 +292,17 @@ bool ZoomableDrawingArea::on_key(GdkEventKey* event) {
 	} else {
 		if(event->keyval==GDK_KEY_z) zoom_all();
 
-
 		double a = 3;
 		if(event->state & GDK_SHIFT_MASK) a *= 5;
-		if(event->keyval==GDK_KEY_Left) 	{translate_selection(-a/_zoom, 0);  fire_change_event();}
-		if(event->keyval==GDK_KEY_Right) 	{translate_selection(a/_zoom, 0);	fire_change_event();}
-		if(event->keyval==GDK_KEY_Up) 	{	translate_selection(0,-a/_zoom);	fire_change_event();}
-		if(event->keyval==GDK_KEY_Down) 	{translate_selection(0,a/_zoom);	fire_change_event();}
+		double dx = 0, dy = 0;
+		if(event->keyval==GDK_KEY_Left) 	dx = -a/_zoom;
+		if(event->keyval==GDK_KEY_Right) 	dx = a/_zoom;
+		if(event->keyval==GDK_KEY_Up) 		dy = -a/_zoom;
+		if(event->keyval==GDK_KEY_Down) 	dy = a/_zoom;
+		if(dx!=0 || dy!=0) {
+			(new CommandTranslateSelection(this,dx,dy))->execute();
+			 fire_change_event();
+		}
 	}
 
 	for(uint i=0; i<keylisteners.size(); i++) {
@@ -348,6 +359,10 @@ bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
 
 	if(event->button==1) {
 		multi_selectionBox->set_bounds(Rectangle());
+
+		if(isDragging && draggedComponent && has_selection()) {
+			new CommandTranslateSelection(this, mousePosDoc.x - drag_start_x, mousePosDoc.y - drag_start_y);
+		}
 
 		if(isDragging && !draggedComponent) {
 			select(drag_start_x, drag_start_y, mousePosDoc.x, mousePosDoc.y);

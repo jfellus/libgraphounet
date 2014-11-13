@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <algorithm>
+#include <list>
 
 class DebugStream {
 public:
@@ -79,6 +80,15 @@ template <class T> std::ostream& operator<<(std::ostream& os, std::vector<T> v) 
 	return os;
 }
 
+template <class T> std::ostream& operator<<(std::ostream& os, std::list<T> v) {
+	os << "[ ";
+	for(typename std::list<T>::iterator i=v.begin(); i!=v.end(); i++) {
+		if(i!=v.begin()) os << ", ";
+		os << *i;
+	}
+	os << " ]";
+	return os;
+}
 
 template <typename T> void _VECTOR_ASSERT_UNICITY(std::vector<T> v, T item) {
 	for(uint i=0; i<v.size(); i++) {
