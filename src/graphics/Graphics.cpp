@@ -95,7 +95,7 @@ void Graphics::stroke_alpha(RGB rgb, double thickness, double alpha) {
 }
 
 void Graphics::set_color(const RGB& rgb) {
-	cairo_set_source_rgb(cr, rgb.r/255.0, rgb.g/255.0, rgb.b/255.0);
+	cairo_set_source_rgba(cr, rgb.r/255.0, rgb.g/255.0, rgb.b/255.0, alpha);
 }
 
 void Graphics::set_line_width(double lw) {

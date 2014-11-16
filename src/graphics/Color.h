@@ -15,7 +15,12 @@
 #define RGB_RED RGB(1,0,0)
 #define RGB_GREEN RGB(0,1,0)
 #define RGB_BLUE RGB(0,0,1)
-#define RGB_YELLOW RGB(1,0,0)
+#define RGB_YELLOW RGB(1,1,0)
+#define RGB_PINK RGB("#FF69B4")
+#define RGB_PURPLE RGB("#800080")
+#define RGB_MAGENTA RGB(1,0,1)
+#define RGB_CYAN RGB(0,1,1)
+#define RGB_GREY RGB(0.5,0.5,0.5)
 #define RGB_INVALID RGB(-1,-1,-1)
 
 class RGB {
@@ -28,6 +33,9 @@ public:
 		this->r = (unsigned char)(c & 255);
 		this->g = (unsigned char)((c >> 8) & 255);
 		this->b = (unsigned char)((c >> 16) & 255);
+	}
+	RGB(const std::string& s) {
+		(*this) = s;
 	}
 
 	uint as_packed_RGB() {
@@ -48,11 +56,18 @@ public:
 		if(s=="red") return (*this) = RGB_RED;
 		if(s=="black") return (*this) = RGB_BLACK;
 		if(s=="green") return (*this) = RGB_GREEN;
+		if(s=="yellow") return (*this) = RGB_YELLOW;
+		if(s=="pink") return (*this) = RGB_PINK;
+		if(s=="purple") return (*this) = RGB_PURPLE;
+		if(s=="cyan") return (*this) = RGB_CYAN;
+		if(s=="grey") return (*this) = RGB_GREY;
+		if(s=="magenta") return (*this) = RGB_MAGENTA;
+
 		if(s[0]=='#') {
 			std::istringstream iss(s); iss.get();
 			uint i;
 			iss >> std::hex >> i;
-			(*this) = i; unsigned char tmp = r; r = g; g = b; b = tmp;
+			(*this) = i; unsigned char tmp = r; r = b; b = tmp;
 			return *this;
 		}
 		std::istringstream iss(s);

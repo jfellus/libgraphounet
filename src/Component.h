@@ -26,6 +26,7 @@ public:
 	int selectionLayer = 0;
 	float layer = 0;
 
+	bool bLock = false;
 
 protected:
 
@@ -35,7 +36,6 @@ protected:
 
 	IStyle* style = NULL;
 	std::string css_class;
-
 
 
 public:
@@ -61,6 +61,8 @@ public:
 
 	virtual void show() { visible=true; }
 	virtual void hide() { visible=false; }
+	virtual void unlock() { bLock = false; }
+	virtual void lock() { bLock = true; }
 
 	void set_pos(double x, double y) 	{ this->x = x; this->y = y; }
 	void set_pos(const Vector2D& p) 	{ set_pos(p.x, p.y);}

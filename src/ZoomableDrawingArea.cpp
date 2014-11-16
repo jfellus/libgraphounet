@@ -80,11 +80,11 @@ ZoomableDrawingArea::~ZoomableDrawingArea() {}
 Component* ZoomableDrawingArea::get_selectable_component_at(double x, double y) {
 	for(int i=components_topified.size()-1; i>=0; i--) {
 		Component* c = components_topified[i];
-		if(c->visible && c->hasPoint(x,y)) return c;
+		if(c->visible && !c->bLock && c->hasPoint(x,y)) return c;
 	}
 	for(int i=components_selectables.size()-1; i>=0; i--) {
 		Component* c = components_selectables[i];
-		if(c->visible && c->hasPoint(x,y)) return c;
+		if(c->visible && !c->bLock && c->hasPoint(x,y)) return c;
 	}
 	return 0;
 }
@@ -153,7 +153,8 @@ void ZoomableDrawingArea::zoom_all() {
 
 void ZoomableDrawingArea::select_all() {
 	isSelecting = true;
-	for(uint i=0; i<components_selectables.size(); i++) if(components_selectables[i]->visible) components_selectables[i]->select(false);
+	for(uint i=0; i<components_selectables.size(); i++)
+		if(components_selectables[i]->visible && !components_selectables[i]->bLock) components_selectables[i]->select(false);
 	isSelecting = false;
 	fire_selection_change();
 	repaint();
@@ -182,12 +183,12 @@ void ZoomableDrawingArea::select(double x1, double y1, double x2, double y2) {
 	Rectangle r(x1,y1,x2-x1,y2-y1);
 	for(uint i=0; i<components_topified.size(); i++) {
 		Component* c = components_topified[i];
-		if(!c->visible) continue;
+		if(!c->visible || c->bLock) continue;
 		if(c->is_in(r) && !c->is_selected()) c->select(false);
 	}
 	for(uint i=0; i<components_selectables.size(); i++) {
 		Component* c = components_selectables[i];
-		if(!c->visible) continue;
+		if(!c->visible || c->bLock) continue;
 		if(c->is_in(r) && !c->is_selected()) c->select(false);
 	}
 	isSelecting = false;
@@ -262,7 +263,10 @@ void ZoomableDrawingArea::untopify(Component* c) {	vector_remove(components_topi
 // CREATORS //
 //////////////
 
-void ZoomableDrawingArea::start_creator(Creator* c) {creator = c; c->start(this); repaint();}
+void ZoomableDrawingArea::start_creator(Creator* c) {
+	if(creator!=NULL) end_creator();
+	creator = c; c->start(this); repaint();
+}
 void ZoomableDrawingArea::end_creator() {
 	delete creator;
 	creator = NULL; repaint();

@@ -23,6 +23,7 @@ public:
 	std::map<uint,RGB*> colormap;
 	cairo_t* cr;
 	ZoomableDrawingArea* canvas;
+	float alpha = 1;
 private:
 public:
 	Graphics(); // Create dummy Graphics for extents measurements
@@ -99,6 +100,7 @@ public:
 	void save() {cairo_save(cr);}
 	void restore() {cairo_restore(cr);}
 
+	void set_opacity(float o) { alpha = o; }
 	void set_line_cap(cairo_line_cap_t lc) {cairo_set_line_cap(cr, lc);}
 	void move_to(double x, double y) {cairo_move_to(cr, x, y);}
 	void line_to(double x, double y) {cairo_line_to(cr, x,y);}
