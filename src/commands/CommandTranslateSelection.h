@@ -26,7 +26,7 @@ public:
 
 	virtual void execute() {
 		for(uint i=0; i<selection.size(); i++) {
-			selection[i]->translate(dx,dy);
+			selection[i]->translate(dx,dy, true);
 		}
 		canvas->grab_focus();
 		canvas->repaint();
@@ -34,7 +34,7 @@ public:
 
 	virtual void undo() {
 		for(uint i=0; i<selection.size(); i++) {
-			selection[i]->translate(-dx,-dy);
+			selection[i]->translate(-dx,-dy, true);
 		}
 		canvas->grab_focus();
 		canvas->repaint();

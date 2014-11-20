@@ -51,9 +51,20 @@ bool file_is_directory(const std::string& filename) {
     return (S_ISDIR (buffer.st_mode));
 }
 
+std::string cwd() {
+	char buf[1024];
+	getcwd(buf, 1024);
+	std::string s = buf;
+	return s;
+}
+
 std::string file_absolute_path(const std::string& path) {
+	if(path.empty()) return "";
 	char* s = realpath(path.c_str(), NULL);
-	if(!s) return "";
+	if(!s) {
+		if(path[0]=='/') return path;
+		return cwd() + "/" + path;
+	}
 	std::string ss = s;
 	free(s);
 	return ss;

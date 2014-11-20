@@ -98,8 +98,6 @@ void parse_keycode_str(const char* keycode_str, uint* key, uint* modifiers) {
 	else if(!strcmp(keycode_str, "ENTER")) *key = GDK_KEY_Return;
 }
 
-std::string cwd() { static char s[MAX_PATH]; getcwd(s,MAX_PATH); return std::string(s);}
-
 
 std::string str_to_lower(const std::string& s) {
 	std::string a = s;

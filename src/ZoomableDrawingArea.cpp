@@ -366,6 +366,7 @@ bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
 
 		if(isDragging && draggedComponent && has_selection()) {
 			new CommandTranslateSelection(this, mousePosDoc.x - drag_start_x, mousePosDoc.y - drag_start_y);
+			for(uint i=0; i<selection.size(); i++) selection[i]->translate(0,0, true);
 		}
 
 		if(isDragging && !draggedComponent) {

@@ -105,6 +105,12 @@ template <typename T> void _VECTOR_ASSERT_UNICITY(std::vector<T> v, T item) {
 #endif
 
 
+inline void shell(const std::string& command) {(void) system(command.c_str());}
 
+
+#ifndef MAX
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#endif
 
 #endif /* UTILS_H_ */

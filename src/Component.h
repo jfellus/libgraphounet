@@ -20,6 +20,15 @@ class BoundingBox;
 class Component : public ISelectable {
 public:
 
+	class ITranslateListener {
+	public:
+		ITranslateListener() {}
+		virtual ~ITranslateListener() {}
+		virtual void on_translate(double x, double y) = 0;
+	};
+
+public:
+
 	double x,y;
 
 	bool visible = false;
@@ -37,6 +46,7 @@ protected:
 	IStyle* style = NULL;
 	std::string css_class;
 
+	std::vector<ITranslateListener*> translateListeners;
 
 public:
 
@@ -51,6 +61,7 @@ public:
 
 	void set_selectable(bool b = true);
 	virtual void set_canvas(ZoomableDrawingArea* c) {canvas = c;}
+	void add_translate_listener(ITranslateListener* l) {translateListeners.push_back(l);}
 
 	virtual Rectangle get_bounds() { return Rectangle();}
 	virtual bool hasPoint(double x, double y) {return get_bounds().contains(x,y); }
@@ -64,10 +75,16 @@ public:
 	virtual void unlock() { bLock = false; }
 	virtual void lock() { bLock = true; }
 
-	void set_pos(double x, double y) 	{ this->x = x; this->y = y; }
-	void set_pos(const Vector2D& p) 	{ set_pos(p.x, p.y);}
+	void set_pos(double x, double y, bool bFireEvent = false) 	{
+		this->x = x; this->y = y;
+		if(bFireEvent) for(uint i=0; i<translateListeners.size(); i++) translateListeners[i]->on_translate(x,y);
+	}
+	void set_pos(const Vector2D& p, bool bFireEvent = false) 	{ set_pos(p.x, p.y, bFireEvent);}
 	void center(const Vector2D& p) 		{ Rectangle r = get_bounds(); set_pos(p.x - r.w/2, p.y - r.h/2);}
-	virtual void translate(double dx, double dy) {this->x += dx; this->y += dy; 	}
+	virtual void translate(double dx, double dy, bool bFireEvent = false) {
+		this->x += dx; this->y += dy;
+		if(bFireEvent) for(uint i=0; i<translateListeners.size(); i++) translateListeners[i]->on_translate(x,y);
+	}
 
 	virtual void select(bool single);
 	virtual void unselect();

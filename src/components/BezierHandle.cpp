@@ -28,7 +28,7 @@ void BezierHandle::render(Graphics& g) {
 }
 
 
-void BezierHandle::translate(double dx, double dy) {
+void BezierHandle::translate(double dx, double dy, bool bFireEvent) {
 	x += dx; y += dy;
 	Vector2D cs = link->src->center(); Vector2D cd = link->dst->center();
 	if(i == 0) {

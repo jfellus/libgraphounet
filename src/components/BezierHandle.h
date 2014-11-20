@@ -20,7 +20,7 @@ public:
 	virtual ~BezierHandle();
 
 	virtual void render(Graphics& g);
-	virtual void translate(double dx, double dy);
+	virtual void translate(double dx, double dy, bool bFireEvent = false);
 
 	virtual Rectangle get_bounds();
 	virtual void select(bool single);

@@ -147,7 +147,7 @@ public:
 	void zoom(const Rectangle& r);
 	void zoom(float fzoom, double cx, double cy);
 	void zoom(float fzoom) {_zoom *= (1 + fzoom); repaint();}
-	void zoom_reset() {	_zoom = 1;	offsetx = offsety = 0;	repaint(); }
+	void zoom_reset() {	_zoom = 0.08;	offsetx = offsety = 0;	repaint(); }
 	void move(double dx, double dy) {offsetx += dx; offsety += dy; repaint();}
 
 

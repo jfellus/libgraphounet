@@ -61,4 +61,6 @@ template <class T> bool f_try_read(std::istream& f, const char* fmt, T& val) {
 
 void f_skipline(std::ifstream& f);
 
+std::string cwd();
+
 #endif /* FILE_H_ */
