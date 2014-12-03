@@ -83,6 +83,7 @@ public:
 	std::vector<Component*> components_topified;
 	std::vector<Component*> selection;
 	std::vector<IKeyListener*> keylisteners;
+	std::vector<IScrollListener*> scrolllisteners;
 	std::vector<IMouseListener*> mouseListeners;
 	std::vector<ISelectionListener*> selectionListeners;
 	std::vector<IChangeListener*> changeListeners;
@@ -126,6 +127,7 @@ public:
 	void add_key_listener(IMouseListener* kl) 			{mouseListeners.push_back(kl);}
 	void add_selection_listener(ISelectionListener* l) 	{selectionListeners.push_back(l);}
 	void add_change_listener(IChangeListener* l) 		{changeListeners.push_back(l);}
+	void add_scroll_listener(IScrollListener* kl) 		{scrolllisteners.push_back(kl);}
 
 	// Selection
 
@@ -188,6 +190,7 @@ protected:
 	virtual bool on_scroll(GdkEventScroll* event);
 	virtual void on_first_draw();
 public:
+	virtual void on_zoom(double x, double y, double dx, double dy);
 	virtual void on_realizes();
 };
 

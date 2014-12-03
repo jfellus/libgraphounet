@@ -14,19 +14,25 @@
 
 
 class SVGComponent : public Component {
+public:
 	SVG* svg = NULL;
 	Rectangle bounds;
 public:
 	SVGComponent(const char* filename) {
+		set(filename);
+	}
+	virtual ~SVGComponent() {}
+
+
+	void set(const char* filename) {
 		if(file_has_ext(filename, ".svg")) load(filename);
 		else {
 			std::string f = SVGDefinitions::get(filename);
 			if(f.empty()) {throw "";}
 			else load(f.c_str());
 		}
+		bounds = Rectangle();
 	}
-	virtual ~SVGComponent() {}
-
 
 	void load(const char* filename) {try {svg = SVG::get_resource(filename);} catch(...) { ERROR("Couldn't load SVG file : " << filename); throw ""; }}
 

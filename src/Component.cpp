@@ -108,3 +108,8 @@ void Component::remove_class(const std::string& c) {
 	if(style) style->update(css_class);
 }
 
+void Component::remove_all_classes() {
+	css_class="";
+	if(style) style->update(css_class);
+}
+

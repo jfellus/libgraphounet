@@ -111,3 +111,8 @@ void f_skipline(std::ifstream& f) {
 	while((c=f.get())!=-1 && c!='\n') {}
 }
 
+void create_dir_for(const std::string& filename) {
+	shell(TOSTRING("mkdir -p " << file_dirname(filename).c_str()));
+}
+
+

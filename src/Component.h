@@ -97,7 +97,7 @@ public:
 	void remove_class(const std::string& c);
 	bool has_class(const std::string& c);
 	void toggle_class(const std::string& c) {if(has_class(c)) remove_class(c); else add_class(c);}
-
+	void remove_all_classes();
 
 	// Rendering
 

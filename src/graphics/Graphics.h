@@ -45,8 +45,8 @@ public:
 
 	void drawPoint(const Vector2D& p) {drawPoint(p.x,p.y);}
 	void drawPoint(double x, double y);
-	void drawLine(const Vector2D& a, const Vector2D& b) {drawLine(a.x, a.y, b.x, b.y);}
-	void drawLine(double x1, double y1, double x2, double y2);
+	void drawLine(const Vector2D& a, const Vector2D& b, float lineWidth = 1) {drawLine(a.x, a.y, b.x, b.y, lineWidth);}
+	void drawLine(double x1, double y1, double x2, double y2, float lineWidth = 1);
 	void drawRect(double x, double y, double w, double h);
 	void drawRoundedRect(double x, double y, double w, double h);
 	void drawRect(const Rectangle& r) {drawRect(r.x, r.y, r.w, r.h);}
@@ -104,6 +104,8 @@ public:
 	void set_line_cap(cairo_line_cap_t lc) {cairo_set_line_cap(cr, lc);}
 	void move_to(double x, double y) {cairo_move_to(cr, x, y);}
 	void line_to(double x, double y) {cairo_line_to(cr, x,y);}
+	inline void move_to(const Vector2D& v) {move_to(v.x,v.y);}
+	inline void line_to(const Vector2D& v) {line_to(v.x,v.y);}
 	void curve_to(double x1, double y1, double x2, double y2, double x3, double y3) {cairo_curve_to(cr, x1, y1, x2, y2, x3, y3);}
 	void close_path() {cairo_close_path(cr);}
 	inline void clear_path() {cairo_new_path(cr);}

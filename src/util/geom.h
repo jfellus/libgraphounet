@@ -121,6 +121,8 @@ public:
 		return r.is_in(*this);
 	}
 
+	Rectangle operator*(double s) { return Rectangle(x,y,w*s,h*s); }
+
 	void correct() {
 		if(empty) return;
 		if(w<0) {x += w; w = -w;}

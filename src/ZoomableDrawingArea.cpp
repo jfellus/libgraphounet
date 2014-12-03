@@ -27,6 +27,7 @@ typedef struct _callbacks {
 
 static void on_undo() { CommandStack::undo(); }
 static void on_redo() { CommandStack::redo(); }
+static void on_zoom(double x, double y, double dx, double dy) { ZoomableDrawingArea::cur()->on_zoom(x,y,dx,dy); }
 
 
 
@@ -66,6 +67,8 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 
 	add_key_listener(new IKeyListener(GDK_KEY_z, GDK_CONTROL_MASK, on_undo));
 	add_key_listener(new IKeyListener(GDK_KEY_Z, GDK_CONTROL_MASK | GDK_SHIFT_MASK, on_redo));
+
+	add_scroll_listener(new IScrollListener(GDK_CONTROL_MASK, ::on_zoom));
 }
 
 ZoomableDrawingArea::~ZoomableDrawingArea() {}
@@ -422,10 +425,15 @@ bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
 bool ZoomableDrawingArea::on_scroll(GdkEventScroll* event) {
 	double dx, dy;
 	gdk_event_get_scroll_deltas((const GdkEvent*)event, &dx, &dy);
-	if(event->state & GDK_CONTROL_MASK) zoom(-0.1 * dy, event->x, event->y);
-	else if(moveMode==MOVE_MODE_SCROLL) move(20*dx, 20*dy);
+
+	for(uint i=0; i<scrolllisteners.size(); i++) {
+		IScrollListener* kl = scrolllisteners[i];
+		if(((event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_SUPER_MASK)) == kl->mask)) kl->on_scroll(event->x, event->y, dx, dy);
+	}
 	return true;
 }
+
+void ZoomableDrawingArea::on_zoom(double x, double y, double dx, double dy) {	zoom(-0.1 * dy, x, y); }
 
 void ZoomableDrawingArea::on_first_draw() {
 	zoom_all();

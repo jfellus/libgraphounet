@@ -52,11 +52,11 @@ void Graphics::drawPoint(double x, double y) {
 	restore();
 }
 
-void Graphics::drawLine(double x1, double y1, double x2, double y2) {
+void Graphics::drawLine(double x1, double y1, double x2, double y2, float lineWidth) {
 	move_to (x1, y1);
 	line_to (x2, y2);
 	close_path ();
-	stroke_line_width_independent(1);
+	stroke_line_width_independent(lineWidth);
 }
 
 void Graphics::fill_all(RGB rgb) {

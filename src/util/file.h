@@ -63,4 +63,6 @@ void f_skipline(std::ifstream& f);
 
 std::string cwd();
 
+void create_dir_for(const std::string& filename);
+
 #endif /* FILE_H_ */
