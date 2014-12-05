@@ -51,7 +51,7 @@ public:
 	}
 
 protected:
-	void compute_bounds() {
+	virtual void compute_bounds() {
 		bounds = svg->get_bounds();
 	}
 

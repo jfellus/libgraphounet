@@ -13,6 +13,7 @@
 
 std::string open_file_dialog(GtkWidget* parent_window);
 std::string save_file_dialog(GtkWidget* parent_window);
+bool question_dialog(GtkWidget* parent_window, const std::string& msg);
 
 
 #endif /* GUI_H_ */

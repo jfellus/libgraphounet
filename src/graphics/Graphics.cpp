@@ -222,6 +222,11 @@ void Graphics::rounded_rectangle(double x, double y, double w, double h, double 
 	cairo_close_path (cr);
 }
 
+void Graphics::drawCircle(double x, double y, double r) {
+	circle(x,y,r);
+	fill();
+}
+
 void Graphics::circle(double x, double y, double r) {
 	cairo_arc(cr, x,y, r,0, 2*M_PI);
 }
@@ -231,17 +236,25 @@ void Graphics::circle(const Rectangle& inner_rect) {
 }
 
 
-void Graphics::drawArrowEnd(const Vector2D& p, const Vector2D& towards, double size) {
+void Graphics::drawArrowEnd(const Vector2D& p, const Vector2D& towards, double size, bool trim_size) {
 	Vector2D dir = towards; dir.normalize();
 	Vector2D orth = dir.normal();
-	dir*= MIN(80*size, (20*size / canvas->get_zoom()));
+	if(trim_size) dir*= MIN(80*size, (20*size / canvas->get_zoom()));
+	else dir *= 80*size;
 	move_to(p.x, p.y);
-	double ssize = MIN(40*size, 10*size / canvas->get_zoom());
+	double ssize = trim_size ? MIN(40*size, 10*size / canvas->get_zoom()) : 40*size;
 	line_to(p.x + dir.x + orth.x * ssize, p.y + dir.y + orth.y*ssize);
 	line_to(p.x + dir.x - orth.x * ssize, p.y + dir.y - orth.y*ssize);
 	line_to(p.x, p.y);
 	cairo_fill(cr);
 }
+
+void Graphics::drawArrow(double x1, double y1, double x2, double y2, double thickness, double size) {
+	Vector2D dir(x1-x2,y1-y2); dir.normalize();
+	drawLine(x1,y1,x2+dir.x*20,y2+dir.y*20, thickness);
+	drawArrowEnd(Vector2D(x2,y2), dir, size, false);
+}
+
 
 void Graphics::set_font(uint size, const std::string& font, int style) {
 	cairo_select_font_face(cr, font.c_str(),
@@ -250,14 +263,46 @@ void Graphics::set_font(uint size, const std::string& font, int style) {
 	cairo_set_font_size(cr, size);
 }
 
-void Graphics::text(const std::string& s, const Rectangle& bounds) {
+void Graphics::text(const std::string& s, const Rectangle& bounds, bool fit) {
+	cairo_save(cr);
 	if(bounds) {
 		cairo_text_extents_t extents;
 		cairo_text_extents(cr, s.c_str(), &extents);
-		cairo_move_to(cr, bounds.x + bounds.w/2 - extents.width/2, bounds.y + bounds.h/2 - extents.height/2 - extents.y_bearing);
+		if(fit) {
+			double ratio_x = bounds.w / extents.width;
+			double ratio_y = bounds.h / extents.height;
+			double ratio = MIN(ratio_x,ratio_y);
+			cairo_move_to(cr, bounds.x + bounds.w/2 - extents.width*ratio/2, bounds.y + bounds.h/2 - extents.height*ratio/2 - extents.y_bearing);
+			cairo_scale(cr, ratio, ratio);
+		}
+		else cairo_move_to(cr, bounds.x + bounds.w/2 - extents.width/2, bounds.y + bounds.h/2 - extents.height/2 - extents.y_bearing);
 	}
 	cairo_show_text(cr, s.c_str());
+	cairo_restore(cr);
 }
+
+void Graphics::text_align(const std::string& s, const Vector2D& _p, int xalign, int yalign) {
+	cairo_text_extents_t extents;
+	cairo_text_extents(cr, s.c_str(), &extents);
+	Vector2D p = _p;
+	if(xalign==0) p.x -= extents.width/2;
+	else if(xalign==1) p.x -= extents.width;
+
+	if(yalign==-1) p.y -= extents.height/2;
+	else if(yalign==1) p.y += extents.height/2;
+
+	cairo_move_to(cr, p.x, p.y);
+	cairo_show_text(cr, s.c_str());
+	cairo_new_path(cr);
+}
+
+
+void Graphics::newline(const std::string& s) {
+	cairo_text_extents_t extents;
+	cairo_text_extents(cr, s.c_str(), &extents);
+	cairo_translate(cr, 0, extents.height + 20);
+}
+
 
 Rectangle Graphics::text_extents(const std::string &s) {
 	cairo_text_extents_t extents;

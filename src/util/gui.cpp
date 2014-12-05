@@ -9,6 +9,16 @@
 #include "gui.h"
 
 
+bool question_dialog(GtkWidget* parent_window, const std::string& msg) {
+	GtkWidget* dialog = gtk_message_dialog_new (GTK_WINDOW(parent_window),GTK_DIALOG_DESTROY_WITH_PARENT,
+	                                 GTK_MESSAGE_QUESTION,
+	                                 GTK_BUTTONS_YES_NO,
+	                                 msg.c_str(), NULL);
+	gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+	gtk_widget_destroy (dialog);
+	return res == GTK_RESPONSE_YES;
+}
+
 std::string open_file_dialog(GtkWidget* parent_window) {
 	GtkWidget *dialog;
 	GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;

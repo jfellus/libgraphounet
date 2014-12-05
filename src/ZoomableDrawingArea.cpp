@@ -416,6 +416,16 @@ bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
 			repaint();
 		}
 	}
+
+	Component* hover = get_selectable_component_at(mousePosDoc.x, mousePosDoc.y);
+	if(hover!=curHover){
+		for(uint i=0; i<hoverListeners.size(); i++) hoverListeners[i]->on_hover(hover);
+		if(curHover) curHover->remove_class("hover");
+		if(hover) hover->add_class("hover");
+		curHover = hover;
+		repaint();
+	}
+
 	oldx = mousePosDoc.x; oldy = mousePosDoc.y;
 	oldx_mouse = event->x; oldy_mouse = event->y;
 	for(uint i=0; i<mouseListeners.size(); i++) mouseListeners[i]->on_mouse_move(mousePosDoc);

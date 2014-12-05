@@ -42,6 +42,14 @@ public:
 		virtual void on_canvas_change() = 0;
 	};
 
+
+	class IHoverListener {
+	public:
+		IHoverListener() {}
+		~IHoverListener() {}
+		virtual void on_hover(Component* c) = 0;
+	};
+
 	///////////
 	// ENUMS //
 	///////////
@@ -72,6 +80,7 @@ public:
 	BoundingBox* selectionBox = 0;
 	BoundingBox* multi_selectionBox = 0;
 	Component* draggedComponent = 0;
+	Component* curHover = 0;
 
 	enum MoveMode moveMode = MOVE_MOUSE_MIDDLE_BUTTON;
 	enum SelectionRenderingMode selectionRenderingMode = SELECTION_Colored;
@@ -87,6 +96,7 @@ public:
 	std::vector<IMouseListener*> mouseListeners;
 	std::vector<ISelectionListener*> selectionListeners;
 	std::vector<IChangeListener*> changeListeners;
+	std::vector<IHoverListener*> hoverListeners;
 
 
 	// Internals
@@ -128,6 +138,7 @@ public:
 	void add_selection_listener(ISelectionListener* l) 	{selectionListeners.push_back(l);}
 	void add_change_listener(IChangeListener* l) 		{changeListeners.push_back(l);}
 	void add_scroll_listener(IScrollListener* kl) 		{scrolllisteners.push_back(kl);}
+	void add_hover_listener(IHoverListener* kl) 		{hoverListeners.push_back(kl);}
 
 	// Selection
 

@@ -54,7 +54,7 @@ public:
 	void drawHandle(double x, double y);
 	void drawCubicBez(float* p);
 	void draw_slashes(int nb_slashes, Vector2D a, const Vector2D& b);
-
+	void drawCircle(double x, double y, double r);
 
 	void mask_circle(const Circle2D& c) { mask_circle(c.center.x, c.center.y, c.radius);}
 	void mask_circle(double x, double y, double r);
@@ -110,11 +110,28 @@ public:
 	void close_path() {cairo_close_path(cr);}
 	inline void clear_path() {cairo_new_path(cr);}
 
-	void drawArrowEnd(const Vector2D& p, const Vector2D& towards, double size = 1);
+	void drawArrowEnd(const Vector2D& p, const Vector2D& towards, double size = 1, bool trim_size = true);
+	void drawArrow(double x1, double y1, double x2, double y2, double thickness = 1, double size = 1);
+	inline void drawArrow(const Vector2D& a, const Vector2D& b, double thickness = 1, double size = 1) { drawArrow(a.x, a.y, b.x, b.y, size);}
+
+
 	cairo_path_t* get_piecewise_linear() {return cairo_copy_path_flat(cr);}
 
 	void set_font(uint size = 600, const std::string& font = "Serif", int style = 0);
-	void text(const std::string& s, const Rectangle& bounds = Rectangle());
+	void text(const std::string& s, const Rectangle& bounds = Rectangle(), bool fit = 0);
+	void text_align(const std::string& s, const Vector2D& p = Vector2D(), int xalign = 0, int yalign = 0);
+	void text_center(const std::string& s, const Vector2D& p = Vector2D()) { text(s, Rectangle(p.x-1,p.y-1,2,2)); }
+	void text_top_center(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, 0, -1); }
+	void text_bottom_center(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, 0, 1); }
+	void text_top_left(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, -1, -1); }
+	void text_top_right(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, -1, 1); }
+	void text_bottom_left(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, -1, 1); }
+	void text_bottom_right(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, 1, 1); }
+	void text_middle_left(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, -1, 0); }
+	void text_middle_right(const std::string& s, const Vector2D& p = Vector2D()) { text_align(s, p, 1, 0); }
+
+	void newline(const std::string& s);
+
 	Rectangle text_extents(const std::string &s);
 };
 

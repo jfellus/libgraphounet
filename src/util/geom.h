@@ -51,6 +51,8 @@ public:
 
 	static Vector2D rand(double norm) { return Vector2D(::rand()-RAND_MAX/2,::rand()-RAND_MAX/2).normalize()*norm; }
 };
+inline Vector2D operator*(double s, const Vector2D& v)  {return Vector2D(v.x*s,v.y*s);}
+
 std::ostream& operator<<(std::ostream& os, const Vector2D& r);
 
 class Rectangle {
