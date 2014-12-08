@@ -7,6 +7,8 @@
 
 #include "utils.h"
 #include <glib-2.0/glib-object.h>
+#include <execinfo.h>
+#include <sys/time.h>
 
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
@@ -24,6 +26,27 @@ bool utils_init() {
 }
 
 
+void PRINT_STACK_TRACE() {
+	void *array[10];
+	size_t size = backtrace(array, 10);
+	backtrace_symbols_fd(array, size, STDERR_FILENO);
+}
+
+std::string get_cur_thread_name() {
+	char name[1000]; pthread_getname_np(pthread_self(), name, 1000);
+	return name;
+}
 
 
+static struct timeval tstart, tend;
+void TIC() {
+	gettimeofday(&tstart, NULL);
+}
+
+void TAC() {
+	gettimeofday(&tend, NULL);
+	float ms = (tend.tv_sec - tstart.tv_sec)*1000.0 + (tend.tv_usec - tstart.tv_usec)/1000.0;
+	float fps = 1000.0 / ms;
+	DBG(ms << "ms " << fps << "fps");
+}
 

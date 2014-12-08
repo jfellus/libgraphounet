@@ -73,6 +73,47 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 
 ZoomableDrawingArea::~ZoomableDrawingArea() {}
 
+static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t locker = 0;
+static int nlocks = 0;
+static bool bDrawEnabled = true;
+static int nboff = 0;
+void ZoomableDrawingArea::LOCK() {
+	if(locker==pthread_self()) {nlocks++;return;}
+	pthread_mutex_lock(&mut);
+	locker = pthread_self();
+	nlocks++;
+}
+void ZoomableDrawingArea::UNLOCK() {
+	nlocks--;
+	if(nlocks<=0) {
+		locker = 0;
+		pthread_mutex_unlock(&mut);
+	}
+}
+bool ZoomableDrawingArea::IS_LOCKED() {
+	return locker==pthread_self();
+}
+void ZoomableDrawingArea::OFF() {
+	LOCK();
+	nboff++;
+	bDrawEnabled = false;
+	UNLOCK();
+}
+void ZoomableDrawingArea::ON() {
+	LOCK();
+	nboff--;
+	if(nboff <= 0) {
+		nboff = 0;
+		bDrawEnabled = true;
+	}
+	UNLOCK();
+}
+
+
+void ZoomableDrawingArea::repaint() {
+	if(bDrawEnabled && !isSelecting) Widget::repaint();
+}
 
 
 ///////////////
@@ -99,36 +140,51 @@ Component* ZoomableDrawingArea::get_selectable_component_at(double x, double y) 
 /////////////
 
 void ZoomableDrawingArea::add(Component* c) {
+	LOCK();
 	components.push_back(c);
 	c->set_canvas(this);
 	update_layers();
+	UNLOCK();
 }
 
 void ZoomableDrawingArea::remove(Component* c) {
+	LOCK();
+	c->ready = false;
 	remove_selectable(c);
 	if(c->bSelected) remove_selection(c);
 	vector_remove(components,c);
 	c->set_canvas(0);
+	UNLOCK();
 }
 
+void ZoomableDrawingArea::clear() {
+	LOCK();
+	unselect_all();
+	while(!components_selectables.empty()) remove_selectable(components_selectables[0]);
+	while(!components.empty()) {Component* c = components[0]; vector_remove(components, c); delete c;}
+	UNLOCK();
+}
 
 ////////////////
 // NAVIGATION //
 ////////////////
 
 void ZoomableDrawingArea::zoom(float fzoom, double cx, double cy) {
+	LOCK();
 	cx =  (cx - offsetx)/ _zoom ;
 	cy =  (cy - offsety)/ _zoom ;
 	double oldzoom = _zoom;
 	_zoom *= 1 + fzoom;
 	offsetx -= cx*(_zoom - oldzoom);
 	offsety -= cy*(_zoom - oldzoom);
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::zoom(Component* c) {	zoom(c->get_bounds()); }
 
 void ZoomableDrawingArea::zoom(const Rectangle& r) {
+	LOCK();
 	double w = get_width()-20;
 	double h = get_height()-20;
 	if(!w || !h) return;
@@ -136,16 +192,19 @@ void ZoomableDrawingArea::zoom(const Rectangle& r) {
 
 	offsetx= -r.x*_zoom + 10 + MAX(0,(w - r.w*_zoom)/2);
 	offsety= -r.y*_zoom + 10 + MAX(0,(h - r.h*_zoom)/2);
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::zoom_all() {
 	if(components.empty()) return;
+	LOCK();
 	Rectangle r = components[0]->get_bounds();
 	for(uint i=1; i<components.size(); i++) {
 		if(components[i]->visible) r.add(components[i]->get_bounds());
 	}
 	zoom(r);
+	UNLOCK();
 }
 
 
@@ -155,33 +214,42 @@ void ZoomableDrawingArea::zoom_all() {
 ///////////////
 
 void ZoomableDrawingArea::select_all() {
+	LOCK();
 	isSelecting = true;
 	for(uint i=0; i<components_selectables.size(); i++)
 		if(components_selectables[i]->visible && !components_selectables[i]->bLock) components_selectables[i]->select(false);
 	isSelecting = false;
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::select(Component* c, bool single) {
+	LOCK();
 	c->select(single);
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::unselect(Component* c)			{
+	LOCK();
 	c->unselect();
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::toggle_select(Component* c) 		{
+	LOCK();
 	c->toggle_select();
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::select(double x1, double y1, double x2, double y2) {
+	LOCK();
 	isSelecting = true;
 	Rectangle r(x1,y1,x2-x1,y2-y1);
 	for(uint i=0; i<components_topified.size(); i++) {
@@ -196,29 +264,36 @@ void ZoomableDrawingArea::select(double x1, double y1, double x2, double y2) {
 	}
 	isSelecting = false;
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 
 void ZoomableDrawingArea::unselect_all() {
+	LOCK();
 	isSelecting = true;
 	while(!components_topified.empty()) untopify(components_topified[0]);
 	while(!selection.empty()) selection[0]->unselect();
 	selectionBox->set_bounds(Rectangle());
 	isSelecting = false;
 	fire_selection_change();
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::add_selection(Component* c) {
+	LOCK();
 	selection.push_back(c);
 	selectionBox->set_bounds(&selection);
+	UNLOCK();
 }
 
 void ZoomableDrawingArea::remove_selection(Component* c) {
+	LOCK();
 	vector_remove(selection, c);
 	selectionBox->set_bounds(&selection);
 	if(selection.empty()) selectionBox->set_bounds(Rectangle());
+	UNLOCK();
 }
 
 
@@ -229,10 +304,12 @@ void ZoomableDrawingArea::remove_selection(Component* c) {
 /////////////////////
 
 void ZoomableDrawingArea::translate_selection(double dx, double dy) {
+	LOCK();
 	for(uint i=0; i<selection.size(); i++) {
 		selection[i]->translate(dx,dy);
 	}
 	grab_focus();
+	UNLOCK();
 	repaint();
 }
 
@@ -246,13 +323,17 @@ static bool _drawingLayerComp(Component* c1, Component* c2) {	return c1->layer <
 static bool _selectionLayerComp(Component* c1, Component* c2) {	return c1->selectionLayer < c2->selectionLayer;}
 
 void ZoomableDrawingArea::update_layers() {
+	LOCK();
 	std::sort (components.begin(), components.end(), _drawingLayerComp);
+	UNLOCK();
 	repaint();
 }
 
 void ZoomableDrawingArea::add_selectable(Component* c) {
+	LOCK();
 	components_selectables.push_back(c);
 	std::sort (components_selectables.begin(), components_selectables.end(), _selectionLayerComp);
+	UNLOCK();
 }
 
 void ZoomableDrawingArea::remove_selectable(Component* c) {vector_remove(components_selectables,c);}
@@ -267,12 +348,18 @@ void ZoomableDrawingArea::untopify(Component* c) {	vector_remove(components_topi
 //////////////
 
 void ZoomableDrawingArea::start_creator(Creator* c) {
+	LOCK();
 	if(creator!=NULL) end_creator();
-	creator = c; c->start(this); repaint();
+	creator = c; c->start(this);
+	UNLOCK();
+	repaint();
 }
 void ZoomableDrawingArea::end_creator() {
+	LOCK();
 	delete creator;
-	creator = NULL; repaint();
+	creator = NULL;
+	UNLOCK();
+	repaint();
 }
 
 
@@ -282,11 +369,14 @@ void ZoomableDrawingArea::end_creator() {
 ////////////
 
 void ZoomableDrawingArea::on_realizes() {
+	if(!bDrawEnabled) return;
 	grab_focus();
 	zoom_all();
 }
 
 bool ZoomableDrawingArea::on_key(GdkEventKey* event) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
 	if(event->state & GDK_CONTROL_MASK) {
 		if(event->keyval==GDK_KEY_a) select_all();
 
@@ -318,24 +408,29 @@ bool ZoomableDrawingArea::on_key(GdkEventKey* event) {
 	}
 
 	grab_focus();
+	UNLOCK();
 	return TRUE;
 }
 
 bool ZoomableDrawingArea::on_dbl_click(GdkEventButton* e) {
-	if(selection.empty()) return false;
-	selection[0]->on_dbl_click(e);
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
+	if(!selection.empty()) selection[0]->on_dbl_click(e);
+	for(uint i=0; i<dblclickListeners.size(); i++) dblclickListeners[i]->on_dbl_click(selection.empty() ? NULL : selection[0]);
+	UNLOCK();
 	return false;
 }
 
 
 bool ZoomableDrawingArea::on_click(GdkEventButton* event) {
-	if(event->type == GDK_2BUTTON_PRESS) return on_dbl_click(event);
-	if(creator) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
+	if(event->type == GDK_2BUTTON_PRESS) on_dbl_click(event);
+	else if(creator) {
 		creator->on_click(event);
 		return true;
 	}
-
-	if(event->button==1) {
+	else if(event->button==1) {
 		drag_start_x = mouse_to_doc_x(event->x);
 		drag_start_y = mouse_to_doc_y(event->y);
 
@@ -351,20 +446,22 @@ bool ZoomableDrawingArea::on_click(GdkEventButton* event) {
 	}
 
 	grab_focus();
+	UNLOCK();
 	return true;
 }
 
 bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
 	mousePosDoc.x = mouse_to_doc_x(event->x);
 	mousePosDoc.y = mouse_to_doc_y(event->y);
 
 	if(creator) {
 		creator->on_unclick(event);
 		repaint();
-		return true;
 	}
 
-	if(event->button==1) {
+	else if(event->button==1) {
 		multi_selectionBox->set_bounds(Rectangle());
 
 		if(isDragging && draggedComponent && has_selection()) {
@@ -389,12 +486,15 @@ bool ZoomableDrawingArea::on_unclick(GdkEventButton* event) {
 	}
 
 	grab_focus();
+	UNLOCK();
 	return true;
 }
 
 
 
 bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
 	mousePosDoc.x = mouse_to_doc_x(event->x);
 	mousePosDoc.y = mouse_to_doc_y(event->y);
 
@@ -429,10 +529,13 @@ bool ZoomableDrawingArea::on_mouse_move(GdkEventMotion* event) {
 	oldx = mousePosDoc.x; oldy = mousePosDoc.y;
 	oldx_mouse = event->x; oldy_mouse = event->y;
 	for(uint i=0; i<mouseListeners.size(); i++) mouseListeners[i]->on_mouse_move(mousePosDoc);
+	UNLOCK();
 	return true;
 }
 
 bool ZoomableDrawingArea::on_scroll(GdkEventScroll* event) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
 	double dx, dy;
 	gdk_event_get_scroll_deltas((const GdkEvent*)event, &dx, &dy);
 
@@ -440,17 +543,28 @@ bool ZoomableDrawingArea::on_scroll(GdkEventScroll* event) {
 		IScrollListener* kl = scrolllisteners[i];
 		if(((event->state & (GDK_CONTROL_MASK | GDK_SHIFT_MASK | GDK_SUPER_MASK)) == kl->mask)) kl->on_scroll(event->x, event->y, dx, dy);
 	}
+	UNLOCK();
 	return true;
 }
 
-void ZoomableDrawingArea::on_zoom(double x, double y, double dx, double dy) {	zoom(-0.1 * dy, x, y); }
+void ZoomableDrawingArea::on_zoom(double x, double y, double dx, double dy) {
+	if(!bDrawEnabled) return;
+	LOCK();
+	zoom(-0.1 * dy, x, y);
+	UNLOCK();
+}
 
 void ZoomableDrawingArea::on_first_draw() {
+	LOCK();
 	zoom_all();
 	bFirstDraw = false;
+	UNLOCK();
+	pthread_setname_np(pthread_self(), "Drawing");
 }
 
 bool ZoomableDrawingArea::on_draw(cairo_t* cr) {
+	if(!bDrawEnabled) return FALSE;
+	LOCK();
 	if(bFirstDraw) on_first_draw();
 	Graphics g(cr, this);
 	g.fill_all(RGB_WHITE);
@@ -463,6 +577,7 @@ bool ZoomableDrawingArea::on_draw(cairo_t* cr) {
 	if(selectionRenderingMode==SELECTION_ShowSingleBoundingBox && selectionBox) selectionBox->draw(g);
 	if(multi_selectionBox) multi_selectionBox->draw(g);
 	if(creator) creator->draw(g);
+	UNLOCK();
 
 	return FALSE;
 }

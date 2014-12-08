@@ -25,9 +25,11 @@ private:
 
 public:
 	LinkComponent(Component* src, Component* dst) {
+		ready = false;
 		selectionLayer = -1;
 		connect(src, dst);
 		b = new Bezier(0,0,0.2,0.2,0.8,0.8,1,1);
+		ready = true;
 	}
 	virtual ~LinkComponent() {
 		if(bezierHandle1) delete bezierHandle1;
@@ -35,8 +37,10 @@ public:
 	}
 
 	void connect(Component* src, Component* dst) {
+		ready = false;
 		this->src = src;
 		this->dst = dst;
+		ready = true;
 	}
 
 	virtual void transform(Graphics& g) {} // No transform !
@@ -48,6 +52,7 @@ public:
 	}
 
 	virtual Rectangle get_bounds() {
+		if(!ready) return Rectangle();
 		return bezier_absolute().get_bounds();
 	}
 
@@ -58,7 +63,7 @@ public:
 	virtual void unselect();
 
 	virtual void click(double x, double y);
-	virtual void translate(double dx, double dy);
+	virtual void translate(double dx, double dy, bool bFireEvent = false);
 
 
 	void render_line(Graphics& g, double tickness = 1);

@@ -33,9 +33,14 @@ void parse_keycode_str(const char* keycode_str, uint* key, uint* modifers);
 
 #define TOSTRING(x) ((std::ostringstream&)(std::ostringstream() << x)).str()
 #define TOINT(x) toInt(x)
+#define TOFLOAT(x) toFloat(x);
 
 inline int toInt(const std::string& s) {
 	int i = -1; std::istringstream iss(s); iss >> i; return i;
+}
+
+inline float toFloat(const std::string& s) {
+	float i = -1; std::istringstream iss(s); iss >> i; return i;
 }
 
 template<typename T> std::string toString(const T& value) {

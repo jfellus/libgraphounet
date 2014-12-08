@@ -15,6 +15,7 @@ BezierHandle::BezierHandle(LinkComponent* l, int i) : Component(false) {
 	link = l; this->i = i;
 	ZoomableDrawingArea::cur()->add(this);
 	update();
+	ready = true;
 }
 
 BezierHandle::~BezierHandle() {

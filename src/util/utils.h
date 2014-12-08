@@ -113,4 +113,13 @@ inline void shell(const std::string& command) {(void) system(command.c_str());}
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
+void PRINT_STACK_TRACE();
+
+std::string get_cur_thread_name();
+
+
+void TIC();
+void TAC();
+
+
 #endif /* UTILS_H_ */

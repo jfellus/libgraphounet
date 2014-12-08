@@ -42,13 +42,20 @@ public:
 		virtual void on_canvas_change() = 0;
 	};
 
-
 	class IHoverListener {
 	public:
 		IHoverListener() {}
 		~IHoverListener() {}
 		virtual void on_hover(Component* c) = 0;
 	};
+
+	class IDblClickListener {
+	public:
+		IDblClickListener() {}
+		~IDblClickListener() {}
+		virtual void on_dbl_click(Component* c) = 0;
+	};
+
 
 	///////////
 	// ENUMS //
@@ -97,6 +104,7 @@ public:
 	std::vector<ISelectionListener*> selectionListeners;
 	std::vector<IChangeListener*> changeListeners;
 	std::vector<IHoverListener*> hoverListeners;
+	std::vector<IDblClickListener*> dblclickListeners;
 
 
 	// Internals
@@ -120,6 +128,7 @@ public:
 
 	void add(Component* c);
 	void remove(Component* c);
+	void clear();
 
 	void add_selectable(Component* c);
 	void remove_selectable(Component* c);
@@ -139,6 +148,7 @@ public:
 	void add_change_listener(IChangeListener* l) 		{changeListeners.push_back(l);}
 	void add_scroll_listener(IScrollListener* kl) 		{scrolllisteners.push_back(kl);}
 	void add_hover_listener(IHoverListener* kl) 		{hoverListeners.push_back(kl);}
+	void add_dbl_click_listener(IDblClickListener* kl) 	{dblclickListeners.push_back(kl);}
 
 	// Selection
 
@@ -177,7 +187,12 @@ public:
 
 	// Display
 
-	virtual void repaint() {if(!isSelecting) Widget::repaint();}
+	virtual void repaint();
+	void LOCK();
+	void UNLOCK();
+	bool IS_LOCKED();
+	void ON();
+	void OFF();
 
 
 

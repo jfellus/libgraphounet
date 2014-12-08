@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <ios>
 #include "utils.h"
+#include <pwd.h>
 
 bool file_has_ext(const char* filename, const char* ext) {
 	return str_ends_with(str_to_lower(filename),ext);
@@ -58,6 +59,13 @@ std::string cwd() {
 	return s;
 }
 
+std::string home() {
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+	std::string s = homedir;
+	return s;
+}
+
 std::string file_absolute_path(const std::string& path) {
 	if(path.empty()) return "";
 	char* s = realpath(path.c_str(), NULL);
@@ -82,6 +90,24 @@ std::string fgetlines(std::istream& f, int nblines) {
 	}
 	return s;
 }
+
+void f_read_lines(const std::string& filename, std::vector<std::string>& lines) {
+	std::ifstream f(filename);
+	if(!f.good()) return;
+	std::string s;
+	while(getline(f, s).good()) lines.push_back(s);
+	f.close();
+}
+
+void f_write_lines(const std::string& filename, const std::vector<std::string>& lines) {
+	create_dir_for(filename);
+	std::ofstream f(filename, std::ofstream::trunc);
+	for(uint i=0; i<lines.size(); i++) {
+		f << lines[i] << "\n";
+	}
+	f.close();
+}
+
 
 std::string f_read_comments(std::istream& f) {
 	  std::string comment = "",com;

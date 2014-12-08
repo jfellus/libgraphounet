@@ -19,6 +19,7 @@ public:
 	Rectangle bounds;
 public:
 	SVGComponent(const char* filename) {
+		ready = false;
 		set(filename);
 	}
 	virtual ~SVGComponent() {}
@@ -34,7 +35,7 @@ public:
 		bounds = Rectangle();
 	}
 
-	void load(const char* filename) {try {svg = SVG::get_resource(filename);} catch(...) { ERROR("Couldn't load SVG file : " << filename); throw ""; }}
+	void load(const char* filename) {try {svg = SVG::get_resource(filename); ready = true;} catch(...) { ERROR("Couldn't load SVG file : " << filename); throw ""; }}
 
 
 	virtual Rectangle get_bounds() {
@@ -43,7 +44,7 @@ public:
 	}
 
 	virtual void render(Graphics& g) {
-		g.drawSVG(*svg);
+		if(svg) g.drawSVG(*svg);
 	}
 
 	virtual void select(bool single) {
@@ -52,7 +53,7 @@ public:
 
 protected:
 	virtual void compute_bounds() {
-		bounds = svg->get_bounds();
+		if(ready) CAIRO_THREAD_SAFE(bounds = svg->get_bounds());
 	}
 
 	virtual void dump(std::ostream& os) { os << "SVGComponent(" << svg->filename << ")";}

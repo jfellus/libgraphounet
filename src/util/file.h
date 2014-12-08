@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 
 bool file_has_ext(const char* filename, const char* ext);
 inline bool file_has_ext(const std::string& filename, const char* ext) {  return file_has_ext(filename.c_str(), ext); }
@@ -35,6 +36,9 @@ std::string file_absolute_path(const std::string& path);
 
 void fcomeBackToLine(std::istream& f, int linesBefore);
 std::string fgetlines(std::istream& f, int nblines);
+
+void f_read_lines(const std::string& filename, std::vector<std::string>& lines);
+void f_write_lines(const std::string& filename, const std::vector<std::string>& lines);
 
 
 std::string f_read_comments(std::istream& f);
@@ -62,6 +66,7 @@ template <class T> bool f_try_read(std::istream& f, const char* fmt, T& val) {
 void f_skipline(std::ifstream& f);
 
 std::string cwd();
+std::string home();
 
 void create_dir_for(const std::string& filename);
 

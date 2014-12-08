@@ -16,13 +16,13 @@ bool LinkComponent::hasPoint(double x, double y) {
 		if(bezierHandle1 && bezierHandle1->hasPoint(x,y)) return true;
 		if(bezierHandle2 && bezierHandle2->hasPoint(x,y)) return true;
 	}
-	return bezier_absolute().has_point(x,y, 10/canvas->get_zoom());
+	return bezier_absolute().has_point(x,y, 15/canvas->get_zoom());
 }
 
 void LinkComponent::render(Graphics& g) {
 	g.set_color(bSelected ? RGB_RED : RGB_BLACK);
 	render_line(g, 1);
-	render_arrow(g);
+	render_arrow(g, 100);
 }
 
 void LinkComponent::render_line(Graphics& g, double tickness) {
@@ -53,7 +53,7 @@ double LinkComponent::render_arrow(Graphics& g, double size) {
 }
 
 
-void LinkComponent::translate(double dx, double dy) {
+void LinkComponent::translate(double dx, double dy, bool bFireEvent) {
 	if(bezierHandle1) {
 		if(imoving==0) bezierHandle1->translate(dx,dy);
 		else if(imoving==1) bezierHandle2->translate(dx,dy);

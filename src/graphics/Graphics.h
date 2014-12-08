@@ -13,6 +13,8 @@
 #include <map>
 #include <cairo.h>
 
+#define CAIRO_THREAD_SAFE(x) do {Graphics::lock(); x; Graphics::unlock(); } while(0)
+
 class SVG;
 class ZoomableDrawingArea;
 class ColorMap;
@@ -32,6 +34,8 @@ public:
 
 	operator cairo_t*() const { return cr;}
 
+	static void lock();
+	static void unlock();
 
 	// Drawing
 

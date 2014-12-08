@@ -14,7 +14,9 @@
 
 static cairo_t* _dummy_context = 0;
 static cairo_surface_t* surf = 0;
+static pthread_mutex_t dummy_context_mut = PTHREAD_MUTEX_INITIALIZER;
 static cairo_t* create_dummy_cairo_context() {
+	pthread_mutex_lock(&dummy_context_mut);
 	if(!surf) {
 		surf = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 0, 0);
 	}
@@ -30,8 +32,21 @@ Graphics::Graphics() {
 }
 
 Graphics::~Graphics() {
+	if(cr == _dummy_context) pthread_mutex_unlock(&dummy_context_mut);
 }
 
+static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t locker = 0;
+void Graphics::lock() {
+	if(locker==pthread_self()) return;
+	pthread_mutex_lock(&mut);
+	locker = pthread_self();
+}
+
+void Graphics::unlock() {
+	locker = 0;
+	pthread_mutex_unlock(&mut);
+}
 
 void Graphics::drawSVG(SVG &svg) {
 	svg.render(*this);

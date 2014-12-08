@@ -10,6 +10,7 @@
 #include "../components/SVGComponent.h"
 
 Creator::Creator() : Component(false) {
+	ready = true;
 	comp = 0;
 }
 

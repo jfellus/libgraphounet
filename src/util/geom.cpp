@@ -38,46 +38,56 @@ std::ostream& operator<<(std::ostream& os, const Rectangle& r)	{
 
 
 bool Bezier::has_point(double x, double y, double tolerance) {
-	Graphics g;
-	g.bezier(*this);
-	return g.is_in_fill_or_stroke(x,y,false, true, tolerance);
+	bool b = false;
+	CAIRO_THREAD_SAFE({
+		Graphics g;
+		g.bezier(*this);
+		b = g.is_in_fill_or_stroke(x,y,false, true, tolerance);
+	});
+	return b;
 }
 
 
 bool Bezier::intersect(const Circle2D& c, Vector2D& intersection) {
-	Graphics g;
-	g.bezier(*this);
-	cairo_path_t* path = g.get_piecewise_linear();
-	Vector2D a(0,0),b(0,0);
-	for(int i=0; i<path->num_data; i+= path->data[i].header.length) {
-		cairo_path_data_t* p = &path->data[i];
-		b.x = p->point.x; b.y = p->point.y;
-		if(i!=0) {
-			Line2D ab = Line2D(a,b);
-			if(ab.intersect(c, intersection)) {cairo_path_destroy(path); return true;}
+	bool bb = false;
+	CAIRO_THREAD_SAFE({
+		Graphics g;
+		g.bezier(*this);
+		cairo_path_t* path = g.get_piecewise_linear();
+		Vector2D a(0,0); Vector2D b(0,0);
+		for(int i=0; i<path->num_data; i+= path->data[i].header.length) {
+			cairo_path_data_t* p = &path->data[i];
+			b.x = p->point.x; b.y = p->point.y;
+			if(i!=0) {
+				Line2D ab = Line2D(a,b);
+				if(ab.intersect(c, intersection)) {bb = true; break;}
+			}
+			a = b;
 		}
-		a = b;
-	}
-	cairo_path_destroy(path);
-	return false;
+		cairo_path_destroy(path);
+	});
+	return bb;
 }
 
 bool Bezier::intersect(const Rectangle& r, Vector2D& intersection) {
-	Graphics g;
-	g.bezier(*this);
-	cairo_path_t* path = g.get_piecewise_linear();
-	Vector2D a(0,0),b(0,0);
-	for(int i=path->num_data-2; i>=0; i-= path->data[i].header.length) {
-		cairo_path_data_t* p = &path->data[i];
-		a.x = p[1].point.x; a.y = p[1].point.y;
-		if(i!=path->num_data-2) {
-			Line2D ab = Line2D(a,b);
-			if(ab.intersect(r, intersection)) {cairo_path_destroy(path); return true;}
+	bool bb = false;
+	CAIRO_THREAD_SAFE({
+		Graphics g;
+		g.bezier(*this);
+		cairo_path_t* path = g.get_piecewise_linear();
+		Vector2D a(0,0); Vector2D b(0,0);
+		for(int i=path->num_data-2; i>=0; i-= path->data[i].header.length) {
+			cairo_path_data_t* p = &path->data[i];
+			a.x = p[1].point.x; a.y = p[1].point.y;
+			if(i!=path->num_data-2) {
+				Line2D ab = Line2D(a,b);
+				if(ab.intersect(r, intersection)) { bb = true; break;}
+			}
+			b=a;
 		}
-		b=a;
-	}
-	cairo_path_destroy(path);
-	return false;
+		cairo_path_destroy(path);
+	});
+	return bb;
 }
 
 std::ostream& operator<<(std::ostream& os, const Vector2D& r) {

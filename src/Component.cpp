@@ -23,6 +23,7 @@ Component::Component(int layer) {
 	 this->layer = layer;
 	 if(ZoomableDrawingArea::cur()) ZoomableDrawingArea::cur()->add(this);
 	 visible = true;
+	 ready = true;
 }
 
 Component::Component(bool auto_addToCanvas) {
@@ -34,6 +35,7 @@ Component::Component(bool auto_addToCanvas) {
 }
 
 Component::~Component() {
+	ready = false;
 	if(!canvas) return;
 	if(auto_addToCanvas) canvas->remove(this);
 }
@@ -70,18 +72,20 @@ void Component::set_selectable(bool b) {
 ///////////////
 
 void Component::draw(Graphics& g) {
-	if(!visible) return;
+	if(!visible || !ready) return;
 
-	g.save();
-	g.clear_path();
-	transform(g);
-	if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_Colored && is_selected())
-		g.map_color(RGB_BLACK, RGB_RED);
-	render(g);
-		g.unmap_color(RGB_BLACK);
-	g.restore();
-	if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_ShowComponentsBoundingBoxes && is_selected())
-		selectionBox->draw(g);
+	Graphics::lock();
+		g.save();
+		g.clear_path();
+		transform(g);
+		if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_Colored && is_selected())
+			g.map_color(RGB_BLACK, RGB_RED);
+		render(g);
+			g.unmap_color(RGB_BLACK);
+		g.restore();
+		if(canvas && canvas->selectionRenderingMode==ZoomableDrawingArea::SELECTION_ShowComponentsBoundingBoxes && is_selected())
+			selectionBox->draw(g);
+	Graphics::unlock();
 }
 
 

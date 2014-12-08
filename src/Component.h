@@ -36,6 +36,7 @@ public:
 	float layer = 0;
 
 	bool bLock = false;
+	bool ready = false;
 
 protected:
 
@@ -80,7 +81,12 @@ public:
 		if(bFireEvent) for(uint i=0; i<translateListeners.size(); i++) translateListeners[i]->on_translate(x,y);
 	}
 	void set_pos(const Vector2D& p, bool bFireEvent = false) 	{ set_pos(p.x, p.y, bFireEvent);}
-	void center(const Vector2D& p) 		{ Rectangle r = get_bounds(); set_pos(p.x - r.w/2, p.y - r.h/2);}
+	void center(const Vector2D& p, bool bFireEvent = false) 		{
+		Rectangle r;
+		if(ready) get_bounds();
+		set_pos(p.x - r.w/2, p.y - r.h/2, bFireEvent);
+	}
+
 	virtual void translate(double dx, double dy, bool bFireEvent = false) {
 		this->x += dx; this->y += dy;
 		if(bFireEvent) for(uint i=0; i<translateListeners.size(); i++) translateListeners[i]->on_translate(x,y);
