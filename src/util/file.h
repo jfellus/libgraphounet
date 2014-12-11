@@ -39,6 +39,7 @@ std::string fgetlines(std::istream& f, int nblines);
 
 void f_read_lines(const std::string& filename, std::vector<std::string>& lines);
 void f_write_lines(const std::string& filename, const std::vector<std::string>& lines);
+void f_write_line(const std::string& filename, const std::string& s);
 
 
 std::string f_read_comments(std::istream& f);

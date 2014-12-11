@@ -15,6 +15,7 @@ struct NSVGimage;
 class SVG {
 public:
 	std::string filename;
+	bool ready = false;
 public:
 	static SVG* get_resource(const char* filename);
 public:

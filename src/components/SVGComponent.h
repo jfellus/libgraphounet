@@ -25,17 +25,9 @@ public:
 	virtual ~SVGComponent() {}
 
 
-	void set(const char* filename) {
-		if(file_has_ext(filename, ".svg")) load(filename);
-		else {
-			std::string f = SVGDefinitions::get(filename);
-			if(f.empty()) {throw "";}
-			else load(f.c_str());
-		}
-		bounds = Rectangle();
-	}
+	void set(const char* filename);
 
-	void load(const char* filename) {try {svg = SVG::get_resource(filename); ready = true;} catch(...) { ERROR("Couldn't load SVG file : " << filename); throw ""; }}
+	void load(const char* filename);
 
 
 	virtual Rectangle get_bounds() {
@@ -43,9 +35,9 @@ public:
 		return bounds + Vector2D(x,y);
 	}
 
-	virtual void render(Graphics& g) {
-		if(svg) g.drawSVG(*svg);
-	}
+	Vector2D get_pos() {return Vector2D(x,y);}
+
+	virtual void render(Graphics& g);
 
 	virtual void select(bool single) {
 		Component::select(single);
@@ -53,7 +45,8 @@ public:
 
 protected:
 	virtual void compute_bounds() {
-		if(ready) CAIRO_THREAD_SAFE(bounds = svg->get_bounds());
+		//if(ready)
+		CAIRO_THREAD_SAFE(bounds = svg->get_bounds());
 	}
 
 	virtual void dump(std::ostream& os) { os << "SVGComponent(" << svg->filename << ")";}

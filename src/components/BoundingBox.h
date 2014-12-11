@@ -14,10 +14,10 @@ protected:
 	Rectangle bounds;
 	Component* component = 0;
 public:
-	BoundingBox() : Component(false) {selection = 0;}
-	BoundingBox(std::vector<Component*>* sel) : Component(false) {set_bounds(sel);}
-	BoundingBox(Component* c) : Component(false) {set_bounds(c);}
-	BoundingBox(const Rectangle& r) : Component(false) {set_bounds(r);}
+	BoundingBox() : Component(false) {selection = 0; ready = true;}
+	BoundingBox(std::vector<Component*>* sel) : Component(false) {set_bounds(sel);ready = true;}
+	BoundingBox(Component* c) : Component(false) {set_bounds(c);ready = true;}
+	BoundingBox(const Rectangle& r) : Component(false) {set_bounds(r);ready = true;}
 	virtual ~BoundingBox() {}
 
 

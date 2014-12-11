@@ -33,11 +33,11 @@ void BezierHandle::translate(double dx, double dy, bool bFireEvent) {
 	x += dx; y += dy;
 	Vector2D cs = link->src->center(); Vector2D cd = link->dst->center();
 	if(i == 0) {
-		link->b->x2 = (x - cs.x)/(cd.x-cs.x);
-		link->b->y2 = (y - cs.y)/(cd.y-cs.y);
+		link->b->x2 = x - cs.x;
+		link->b->y2 = y - cs.y;
 	} else {
-		link->b->x3 = (x - cs.x)/(cd.x-cs.x);
-		link->b->y3 = (y - cs.y)/(cd.y-cs.y);
+		link->b->x3 = x - cd.x;
+		link->b->y3 = y - cd.y;
 	}
 	Component::set_pos(x,y);
 }
@@ -56,11 +56,11 @@ Rectangle BezierHandle::get_bounds() {
 void BezierHandle::update() {
 	Vector2D cs = link->src->center(); Vector2D cd = link->dst->center();
 	if(i == 0) {
-		x = cs.x*(1-link->b->x2) + cd.x*link->b->x2;
-		y = cs.y*(1-link->b->y2) + cd.y*link->b->y2;
+		x = cs.x + link->b->x2;
+		y = cs.y + link->b->y2;
 	} else {
-		x = cs.x*(1-link->b->x3) + cd.x*link->b->x3;
-		y = cs.y*(1-link->b->y3) + cd.y*link->b->y3;
+		x = cd.x + link->b->x3;
+		y = cd.y + link->b->y3;
 	}
 }
 

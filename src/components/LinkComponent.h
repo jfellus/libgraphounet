@@ -28,7 +28,7 @@ public:
 		ready = false;
 		selectionLayer = -1;
 		connect(src, dst);
-		b = new Bezier(0,0,0.2,0.2,0.8,0.8,1,1);
+		b = new Bezier(0,0,0,0,0,0,1,1);
 		ready = true;
 	}
 	virtual ~LinkComponent() {
@@ -47,8 +47,7 @@ public:
 
 	inline Bezier bezier_absolute() {
 		Vector2D cs = src->center(); Vector2D cd = dst->center();
-		return Bezier(cs.x, cs.y, 	cs.x*(1-b->x2) + cd.x*b->x2, cs.y*(1-b->y2) + cd.y*b->y2,
-						cs.x*(1-b->x3) + cd.x*b->x3, cs.y*(1-b->y3) + cd.y*b->y3,   cd.x, cd.y);
+		return Bezier(cs.x, cs.y, 	cs.x + b->x2, cs.y + b->y2,  cd.x + b->x3, cd.y + b->y3,   cd.x, cd.y);
 	}
 
 	virtual Rectangle get_bounds() {

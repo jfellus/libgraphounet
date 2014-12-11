@@ -114,6 +114,7 @@ inline void shell(const std::string& command) {(void) system(command.c_str());}
 #endif
 
 void PRINT_STACK_TRACE();
+std::string GET_STACK_TRACE();
 
 std::string get_cur_thread_name();
 

@@ -32,6 +32,17 @@ void PRINT_STACK_TRACE() {
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
 }
 
+std::string GET_STACK_TRACE() {
+	void *array[10];
+	size_t size = backtrace(array, 10);
+	char** s = backtrace_symbols(array, size);
+	std::string str = "";
+	for(uint i=0; i<size; i++) {
+		if(s[i]) str += s[i]; str += "\n";
+	}
+	return str;
+}
+
 std::string get_cur_thread_name() {
 	char name[1000]; pthread_getname_np(pthread_self(), name, 1000);
 	return name;

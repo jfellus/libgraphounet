@@ -38,13 +38,14 @@ public:
 	bool bLock = false;
 	bool ready = false;
 
+	IStyle* style = NULL;
+
 protected:
 
 	ZoomableDrawingArea* canvas;
 	BoundingBox* selectionBox = 0;
 	bool auto_addToCanvas = true;
 
-	IStyle* style = NULL;
 	std::string css_class;
 
 	std::vector<ITranslateListener*> translateListeners;
@@ -82,9 +83,8 @@ public:
 	}
 	void set_pos(const Vector2D& p, bool bFireEvent = false) 	{ set_pos(p.x, p.y, bFireEvent);}
 	void center(const Vector2D& p, bool bFireEvent = false) 		{
-		Rectangle r;
-		if(ready) get_bounds();
-		set_pos(p.x - r.w/2, p.y - r.h/2, bFireEvent);
+		Vector2D c = p - center();
+		set_pos(x + c.x, y + c.y, bFireEvent);
 	}
 
 	virtual void translate(double dx, double dy, bool bFireEvent = false) {

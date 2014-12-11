@@ -108,6 +108,14 @@ void f_write_lines(const std::string& filename, const std::vector<std::string>& 
 	f.close();
 }
 
+void f_write_line(const std::string& filename, const std::string& s) {
+	create_dir_for(filename);
+	std::ofstream f(filename, std::ofstream::trunc);
+	f << s << "\n";
+	f.close();
+}
+
+
 
 std::string f_read_comments(std::istream& f) {
 	  std::string comment = "",com;

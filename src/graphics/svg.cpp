@@ -13,13 +13,16 @@
 
 static std::map<std::string, SVG*> resources;
 SVG* SVG::get_resource(const char* filename) {
+	DBG("RESOURCE : " << filename);
 	std::string fullpath = file_absolute_path(filename);
 	if(resources.count(fullpath)) {
+		DBG("END RESOURCE " << filename);
 		return resources[fullpath];
 	} else {
 		SVG* svg = new SVG;
 		svg->load(fullpath.c_str());
 		resources[fullpath] = svg;
+		DBG("END RESOURCE " << filename);
 		return svg;
 	}
 }
@@ -28,6 +31,7 @@ void SVG::load(const char* filename) {
 	this->filename = filename;
 	image = nsvgParseFromFile(filename, "px", 96);
 	if(!image) throw "";
+	ready = true;
 }
 
 void SVG::init() {
@@ -47,6 +51,7 @@ double SVG::get_height() {
 }
 
 void SVG::render(Graphics& g) {
+	if(!ready) return;
 	g.save();
 	NSVGshape* shape;
 	NSVGpath* path;

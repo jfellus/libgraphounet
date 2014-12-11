@@ -82,6 +82,7 @@ void ZoomableDrawingArea::LOCK() {
 	if(locker==pthread_self()) {nlocks++;return;}
 	pthread_mutex_lock(&mut);
 	locker = pthread_self();
+//	f_write_line("locker.txt", GET_STACK_TRACE());
 	nlocks++;
 }
 void ZoomableDrawingArea::UNLOCK() {
@@ -153,6 +154,7 @@ void ZoomableDrawingArea::remove(Component* c) {
 	remove_selectable(c);
 	if(c->bSelected) remove_selection(c);
 	vector_remove(components,c);
+	if(c==curHover) curHover=NULL;
 	c->set_canvas(0);
 	UNLOCK();
 }
@@ -162,6 +164,7 @@ void ZoomableDrawingArea::clear() {
 	unselect_all();
 	while(!components_selectables.empty()) remove_selectable(components_selectables[0]);
 	while(!components.empty()) {Component* c = components[0]; vector_remove(components, c); delete c;}
+	curHover = NULL;
 	UNLOCK();
 }
 
@@ -347,18 +350,22 @@ void ZoomableDrawingArea::untopify(Component* c) {	vector_remove(components_topi
 // CREATORS //
 //////////////
 
-void ZoomableDrawingArea::start_creator(Creator* c) {
-	LOCK();
-	if(creator!=NULL) end_creator();
-	creator = c; c->start(this);
-	UNLOCK();
-	repaint();
+static Creator* _do_start_creator_creator = NULL;
+static int _do_start_creator(void* p) {
+	ZoomableDrawingArea* canvas = (ZoomableDrawingArea*)p;
+	if(canvas->creator!=NULL) canvas->end_creator();
+	canvas->creator = _do_start_creator_creator; _do_start_creator_creator->start(canvas);
+	canvas->repaint();
+	return FALSE;
 }
+void ZoomableDrawingArea::start_creator(Creator* c) {
+	_do_start_creator_creator = c;
+	g_timeout_add(1, _do_start_creator, this);
+}
+
 void ZoomableDrawingArea::end_creator() {
-	LOCK();
 	delete creator;
 	creator = NULL;
-	UNLOCK();
 	repaint();
 }
 
@@ -428,6 +435,7 @@ bool ZoomableDrawingArea::on_click(GdkEventButton* event) {
 	if(event->type == GDK_2BUTTON_PRESS) on_dbl_click(event);
 	else if(creator) {
 		creator->on_click(event);
+		UNLOCK();
 		return true;
 	}
 	else if(event->button==1) {
