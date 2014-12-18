@@ -13,16 +13,13 @@
 
 static std::map<std::string, SVG*> resources;
 SVG* SVG::get_resource(const char* filename) {
-	DBG("RESOURCE : " << filename);
 	std::string fullpath = file_absolute_path(filename);
 	if(resources.count(fullpath)) {
-		DBG("END RESOURCE " << filename);
 		return resources[fullpath];
 	} else {
 		SVG* svg = new SVG;
 		svg->load(fullpath.c_str());
 		resources[fullpath] = svg;
-		DBG("END RESOURCE " << filename);
 		return svg;
 	}
 }

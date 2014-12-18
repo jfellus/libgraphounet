@@ -353,7 +353,7 @@ void ZoomableDrawingArea::untopify(Component* c) {	vector_remove(components_topi
 static Creator* _do_start_creator_creator = NULL;
 static int _do_start_creator(void* p) {
 	ZoomableDrawingArea* canvas = (ZoomableDrawingArea*)p;
-	if(canvas->creator!=NULL) canvas->end_creator();
+	if(canvas->creator!=NULL) {canvas->creator->end(); canvas->end_creator();}
 	canvas->creator = _do_start_creator_creator; _do_start_creator_creator->start(canvas);
 	canvas->repaint();
 	return FALSE;
