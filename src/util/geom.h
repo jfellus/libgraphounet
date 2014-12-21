@@ -328,6 +328,10 @@ public:
 
 	Vector2D middle() { return pointOnPath(0.5); }
 
+	void set(double x2, double y2, double x3, double y3) {
+		this->x2 = x2; this->y2 = y2; this->x3 = x3; this->y3 = y3;
+	}
+
 	Vector2D pt(int i) {
 		if(i==0) return start();
 		if(i==1) return start_ctrl();

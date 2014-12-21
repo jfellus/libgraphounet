@@ -122,5 +122,7 @@ std::string get_cur_thread_name();
 void TIC();
 void TAC();
 
+long get_time_seconds();
+
 
 #endif /* UTILS_H_ */

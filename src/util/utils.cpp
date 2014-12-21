@@ -61,3 +61,10 @@ void TAC() {
 	DBG(ms << "ms " << fps << "fps");
 }
 
+long get_time_seconds() {
+	struct timeval t;
+	gettimeofday(&t, NULL);
+	return t.tv_sec;
+}
+
+

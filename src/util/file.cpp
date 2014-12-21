@@ -66,6 +66,10 @@ std::string home() {
 	return s;
 }
 
+static std::string ARGV_0;
+void set_argv_0(const char* argv0) { ARGV_0 = argv0;}
+std::string main_dir() { return file_dirname(ARGV_0);}
+
 std::string file_absolute_path(const std::string& path) {
 	if(path.empty()) return "";
 	char* s = realpath(path.c_str(), NULL);
@@ -150,3 +154,8 @@ void create_dir_for(const std::string& filename) {
 }
 
 
+long file_get_modification_time(const std::string& filename) {
+	struct stat attrib;
+	stat(filename.c_str(), &attrib);
+	return attrib.st_ctim.tv_sec;
+}

@@ -23,6 +23,8 @@ inline std::string file_change_ext(const std::string& filename, const char* newe
 	return filename.substr(0, i) + newext;
 }
 
+void set_argv_0(const char* argv0);
+
 inline bool file_is_absolute(const std::string& file) {
 	return file[0]=='/';
 }
@@ -68,7 +70,11 @@ void f_skipline(std::ifstream& f);
 
 std::string cwd();
 std::string home();
+std::string main_dir();
 
 void create_dir_for(const std::string& filename);
+
+long file_get_modification_time(const std::string& filename);
+
 
 #endif /* FILE_H_ */
