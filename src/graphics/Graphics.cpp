@@ -95,7 +95,7 @@ void Graphics::mask_circle(double x, double y, double r) {
 }
 
 void Graphics::draw_slashes(int nb_slashes, Vector2D a, const Vector2D& b) {
-	Vector2D v = (b-a).normalize()*60;
+	Vector2D v = (b-a).normalize()*6;
 	Vector2D v2 = (v-v.normal());
 	for(int i=0; i<nb_slashes; i++) {
 		drawLine(a-v2, a+v2);
@@ -254,10 +254,10 @@ void Graphics::circle(const Rectangle& inner_rect) {
 void Graphics::drawArrowEnd(const Vector2D& p, const Vector2D& towards, double size, bool trim_size) {
 	Vector2D dir = towards; dir.normalize();
 	Vector2D orth = dir.normal();
-	if(trim_size) dir*= MIN(80*size, (20*size / canvas->get_zoom()));
-	else dir *= 80*size;
+	if(trim_size) dir*= MIN(8*size, (20*size / canvas->get_zoom()));
+	else dir *= 8*size;
 	move_to(p.x, p.y);
-	double ssize = trim_size ? MIN(40*size, 10*size / canvas->get_zoom()) : 40*size;
+	double ssize = trim_size ? MIN(4*size, 10*size / canvas->get_zoom()) : 4*size;
 	line_to(p.x + dir.x + orth.x * ssize, p.y + dir.y + orth.y*ssize);
 	line_to(p.x + dir.x - orth.x * ssize, p.y + dir.y - orth.y*ssize);
 	line_to(p.x, p.y);

@@ -74,12 +74,15 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 ZoomableDrawingArea::~ZoomableDrawingArea() {}
 
 static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mut1 = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t locker = 0;
 static int nlocks = 0;
 static bool bDrawEnabled = true;
 static int nboff = 0;
 void ZoomableDrawingArea::LOCK() {
-	if(locker==pthread_self()) {nlocks++;return;}
+	pthread_mutex_lock(&mut1);
+	if(locker==pthread_self()) {nlocks++; pthread_mutex_unlock(&mut1); return;}
+	pthread_mutex_unlock(&mut1);
 	pthread_mutex_lock(&mut);
 	locker = pthread_self();
 //	f_write_line("locker.txt", GET_STACK_TRACE());
