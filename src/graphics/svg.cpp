@@ -7,7 +7,7 @@
 
 
 #include "../../lib/nanosvg.h"
-
+#include <gtk/gtk.h>
 #include "svg.h"
 #include "../util/utils.h"
 
@@ -83,6 +83,11 @@ void SVG::save(const char* filename) {
 }
 
 Rectangle SVG::get_bounds() {
+	if(!bounds) compute_bounds();
+	return bounds;
+}
+
+void SVG::do_compute_bounds() {
 	Rectangle r;
 	Graphics g;
 	NSVGshape* shape;
@@ -104,5 +109,15 @@ Rectangle SVG::get_bounds() {
 		Rectangle rr = g.fill_and_stroke_extents(shape->fill.type == NSVG_PAINT_COLOR ,shape->stroke.type == NSVG_PAINT_COLOR);
 		r.add(rr);
 	}
-	return r;
+	bounds = r;
 }
+
+int _compute_bounds(void* p) {
+	SVG* svg = (SVG*)p;
+	svg->do_compute_bounds();
+	return FALSE;
+}
+void SVG::compute_bounds() {
+	g_timeout_add(1, _compute_bounds, this);
+}
+

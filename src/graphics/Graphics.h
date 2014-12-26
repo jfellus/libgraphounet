@@ -8,6 +8,8 @@
 #ifndef GRAPHICS_H_
 #define GRAPHICS_H_
 
+void ASSERT_GTK_THREAD();
+
 #include "Color.h"
 #include "../util/geom.h"
 #include <map>

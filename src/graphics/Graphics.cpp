@@ -25,7 +25,14 @@ static cairo_t* create_dummy_cairo_context() {
 	return _dummy_context;
 }
 
+pthread_t thread_gtk = 0;
+void ASSERT_GTK_THREAD() {
+	if(thread_gtk==0 && get_cur_thread_name()=="Drawing") thread_gtk = pthread_self();
+	if(get_cur_thread_name()!="Drawing") DBG("ERROR : WRONG THREAD : " << get_cur_thread_name() << "\n" << GET_STACK_TRACE() << "\n\n");
+}
+
 Graphics::Graphics() {
+	ASSERT_GTK_THREAD();
 	cr = create_dummy_cairo_context();
 	save();
 	canvas = 0;

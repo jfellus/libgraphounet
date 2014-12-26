@@ -116,7 +116,11 @@ void ZoomableDrawingArea::ON() {
 
 
 void ZoomableDrawingArea::repaint() {
-	if(bDrawEnabled && !isSelecting) Widget::repaint();
+	if(bDrawEnabled && !isSelecting) {
+		LOCK();
+		Widget::repaint();
+		UNLOCK();
+	}
 }
 
 

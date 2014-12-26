@@ -16,6 +16,7 @@ class SVG {
 public:
 	std::string filename;
 	bool ready = false;
+	Rectangle bounds;
 public:
 	static SVG* get_resource(const char* filename);
 public:
@@ -35,6 +36,12 @@ public:
 	void render(Graphics& g);
 
 	void save(const char* filename);
+
+	void compute_bounds();
+
+
+
+	void do_compute_bounds();
 };
 
 
