@@ -120,6 +120,12 @@ public:
 	void drawArrow(double x1, double y1, double x2, double y2, double thickness = 1, double size = 1);
 	inline void drawArrow(const Vector2D& a, const Vector2D& b, double thickness = 1, double size = 1) { drawArrow(a.x, a.y, b.x, b.y, size);}
 
+	void drawImage(unsigned char* rgb_data, int w, int h) { drawImageRGB(rgb_data, w,h); }
+	void drawImage(float* grayscale_data, int w, int h) {drawImageGrayscale(grayscale_data, w, h);}
+	void drawImageRGB(unsigned char* rgb_data, int w, int h, int nb_cols, int nb_rows);
+	void drawImageRGB(unsigned char* rgb_data, int w, int h);
+	void drawImageGrayscale(float* data, int w, int h);
+
 
 	cairo_path_t* get_piecewise_linear() {return cairo_copy_path_flat(cr);}
 

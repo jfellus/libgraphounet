@@ -92,6 +92,7 @@ public:
 	enum MoveMode moveMode = MOVE_MOUSE_MIDDLE_BUTTON;
 	enum SelectionRenderingMode selectionRenderingMode = SELECTION_Colored;
 
+	RGB bgColor = RGB_WHITE;
 
 	// Event listeners
 	std::vector<Component*> components;
@@ -150,6 +151,8 @@ public:
 	void add_hover_listener(IHoverListener* kl) 		{hoverListeners.push_back(kl);}
 	void add_dbl_click_listener(IDblClickListener* kl) 	{dblclickListeners.push_back(kl);}
 
+	void set_background(const RGB& bg) {bgColor = bg;}
+
 	// Selection
 
 	void select(Component* c, bool single);
@@ -170,7 +173,7 @@ public:
 	void zoom(const Rectangle& r);
 	void zoom(float fzoom, double cx, double cy);
 	void zoom(float fzoom) {_zoom *= (1 + fzoom); repaint();}
-	void zoom_reset() {	_zoom = 0.08;	offsetx = offsety = 0;	repaint(); }
+	void zoom_reset() {	_zoom = 1;	offsetx = offsety = 0;	repaint(); }
 	void move(double dx, double dy) {offsetx += dx; offsety += dy; repaint();}
 
 

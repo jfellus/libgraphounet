@@ -66,9 +66,8 @@ std::string home() {
 	return s;
 }
 
-static std::string ARGV_0;
-void set_argv_0(const char* argv0) { ARGV_0 = argv0;}
-std::string main_dir() { return file_dirname(ARGV_0);}
+std::string get_cur_exec_path() { char buf[1024]; readlink("/proc/self/exe", buf, 1024); return buf;}
+std::string main_dir() { return file_dirname(get_cur_exec_path());}
 
 std::string file_absolute_path(const std::string& path) {
 	if(path.empty()) return "";

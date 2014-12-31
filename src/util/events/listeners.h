@@ -28,12 +28,13 @@ public:
 
 class IScrollListener {
 public:
-	void (*fn)(double x, double y, double dx, double dy);
+	void (*fn)(double x, double y, double dx, double dy, void* data);
 	guint mask;
+	void* data;
 public:
-	IScrollListener(int mask, void (*fn)(double, double, double, double)){this->mask = mask; this->fn = fn;}
+	IScrollListener(int mask, void (*fn)(double, double, double, double, void*), void* data){this->mask = mask; this->fn = fn;this->data = data;}
 	virtual ~IScrollListener(){}
-	virtual void on_scroll(double x, double y, double dx, double dy) {fn(x,y,dx,dy);}
+	virtual void on_scroll(double x, double y, double dx, double dy) {fn(x,y,dx,dy, data);}
 };
 
 

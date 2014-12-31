@@ -27,7 +27,7 @@ typedef struct _callbacks {
 
 static void on_undo() { CommandStack::undo(); }
 static void on_redo() { CommandStack::redo(); }
-static void on_zoom(double x, double y, double dx, double dy) { ZoomableDrawingArea::cur()->on_zoom(x,y,dx,dy); }
+static void on_zoom(double x, double y, double dx, double dy, void* data) { ((ZoomableDrawingArea*)data)->on_zoom(x,y,dx,dy); }
 
 
 
@@ -68,7 +68,7 @@ ZoomableDrawingArea::ZoomableDrawingArea(Widget* w) : Widget(gtk_drawing_area_ne
 	add_key_listener(new IKeyListener(GDK_KEY_z, GDK_CONTROL_MASK, on_undo));
 	add_key_listener(new IKeyListener(GDK_KEY_Z, GDK_CONTROL_MASK | GDK_SHIFT_MASK, on_redo));
 
-	add_scroll_listener(new IScrollListener(GDK_CONTROL_MASK, ::on_zoom));
+	add_scroll_listener(new IScrollListener(GDK_CONTROL_MASK, ::on_zoom, this));
 }
 
 ZoomableDrawingArea::~ZoomableDrawingArea() {}
@@ -582,7 +582,7 @@ bool ZoomableDrawingArea::on_draw(cairo_t* cr) {
 	LOCK();
 	if(bFirstDraw) on_first_draw();
 	Graphics g(cr, this);
-	g.fill_all(RGB_WHITE);
+	g.fill_all(bgColor);
 	g.translate(offsetx, offsety);
 	g.scale(_zoom);
 

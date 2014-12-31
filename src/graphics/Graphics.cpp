@@ -332,3 +332,27 @@ Rectangle Graphics::text_extents(const std::string &s) {
 	return Rectangle(0,0,extents.width, extents.height);
 }
 
+void Graphics::drawImageRGB(unsigned char* rgb_data, int w, int h, int nb_cols, int nb_rows) {
+	cairo_surface_t* s = cairo_image_surface_create_for_data(rgb_data, CAIRO_FORMAT_ARGB32, nb_cols, nb_rows, w*4);
+	cairo_set_source_surface(cr, s, 0, 0);
+	cairo_paint(cr);
+	cairo_surface_destroy(s);
+}
+
+
+void Graphics::drawImageRGB(unsigned char* rgb_data, int w, int h) {
+	cairo_surface_t* s = cairo_image_surface_create_for_data(rgb_data, CAIRO_FORMAT_ARGB32, w, h, w*4);
+	cairo_set_source_surface(cr, s, 0, 0);
+	cairo_paint(cr);
+	cairo_surface_destroy(s);
+}
+
+// TODO !!
+void Graphics::drawImageGrayscale(float* data, int w, int h) {
+//	cairo_surface_t* s = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_RGB24, w, h, w*3);
+//	cairo_set_source_surface(cr, s, 0, 0);
+//	cairo_rectangle(cr, 0,0,w,h);
+//	cairo_fill(cr);
+//	cairo_surface_destroy(s);
+}
+
