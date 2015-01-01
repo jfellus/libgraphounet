@@ -60,7 +60,7 @@ public:
 	virtual const char* what() const throw() { return s.c_str();}
 };
 
-template <class T> std::ostream& operator<<(std::ostream& os, std::vector<T*> v) {
+template <class T> std::ostream&& operator<<(std::ostream& os, const std::vector<T*>& v) {
 	os << "[ ";
 	for(uint i=0; i<v.size(); i++) {
 		if(i!=0) os << ", ";
@@ -70,7 +70,7 @@ template <class T> std::ostream& operator<<(std::ostream& os, std::vector<T*> v)
 	return os;
 }
 
-template <class T> std::ostream& operator<<(std::ostream& os, std::vector<T> v) {
+template <class T> std::ostream&& operator<<(std::ostream& os, const std::vector<T>& v) {
 	os << "[ ";
 	for(uint i=0; i<v.size(); i++) {
 		if(i!=0) os << ", ";
@@ -80,9 +80,9 @@ template <class T> std::ostream& operator<<(std::ostream& os, std::vector<T> v) 
 	return os;
 }
 
-template <class T> std::ostream& operator<<(std::ostream& os, std::list<T> v) {
+template <class T> std::ostream& operator<<(std::ostream& os, const std::list<T>& v) {
 	os << "[ ";
-	for(typename std::list<T>::iterator i=v.begin(); i!=v.end(); i++) {
+	for(auto i=v.begin(); i!=v.end(); i++) {
 		if(i!=v.begin()) os << ", ";
 		os << *i;
 	}
@@ -90,7 +90,7 @@ template <class T> std::ostream& operator<<(std::ostream& os, std::list<T> v) {
 	return os;
 }
 
-template <typename T> void _VECTOR_ASSERT_UNICITY(std::vector<T> v, T item) {
+template <typename T> void _VECTOR_ASSERT_UNICITY(const std::vector<T>& v, T item) {
 	for(uint i=0; i<v.size(); i++) {
 		if(v[i]==item) {
 			throw "Not unique";
