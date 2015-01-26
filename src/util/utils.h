@@ -9,8 +9,6 @@
 #define UTILS_H_
 
 
-#include "string.h"
-#include "file.h"
 #include "func_ptr.h"
 #include <pthread.h>
 #include <string>
@@ -124,5 +122,8 @@ void TAC();
 
 long get_time_seconds();
 
+
+#include "string.h"
+#include "file.h"
 
 #endif /* UTILS_H_ */

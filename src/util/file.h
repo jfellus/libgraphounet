@@ -13,6 +13,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <sstream>
+#include "utils.h"
 
 bool file_has_ext(const char* filename, const char* ext);
 inline bool file_has_ext(const std::string& filename, const char* ext) {  return file_has_ext(filename.c_str(), ext); }
@@ -47,7 +49,7 @@ void f_write_line(const std::string& filename, const std::string& s);
 std::string f_read_comments(std::istream& f);
 void f_write_comments(std::ostream& f, const std::string& comments);
 
-template <class T> bool f_try_read(std::istream& f, const char* fmt, T& val) {
+template <class T> bool f_try_read2(std::istream& f, const char* fmt, T& val) {
 	int i;
 	char c;
 	for(i=0; fmt[i]!=0; i++) {
@@ -60,7 +62,24 @@ template <class T> bool f_try_read(std::istream& f, const char* fmt, T& val) {
 		} else {
 			c = f.get();
 			if(c!=fmt[i]) {f.unget(); throw(fmt);}
-//			while((fmt[i]==' ' || fmt[i]=='\t') && (fmt[i+1]==' ' || fmt[i+1]=='\t')) i++;
+			while((fmt[i]==' ' || fmt[i]=='\t') && (fmt[i+1]==' ' || fmt[i+1]=='\t')) i++;
+		}
+	}
+	return true;
+}
+
+template <class T> bool f_try_read(std::istream& f, const char* fmt, T& val) {
+	std::istringstream in(fmt);
+	std::string token; std::string s;
+	while(in.good()) {
+		in >> token;
+		if(token[0]=='%') f >> val;
+		else {
+			f >> s;
+			if(s!=token) {
+				for(uint i=0; i<s.length(); i++) f.unget();
+				throw token;
+			}
 		}
 	}
 	return true;
