@@ -32,6 +32,7 @@ void SVGComponent::set(const char* filename) {
 		else load(f.c_str());
 	}
 	bounds = Rectangle();
+	get_bounds();
 }
 
 void SVGComponent::render(Graphics& g) {
