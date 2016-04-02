@@ -20,6 +20,11 @@ std::string str_replace(std::string subject, const std::string& search, const st
     return subject;
 }
 
+
+bool str_has(const std::string& s, const std::string& needle) {
+	return s.find(needle)!=std::string::npos;
+}
+
 bool str_ends_with(const char* s, const char* suffix) {
 	return g_str_has_suffix(s, suffix);
 }

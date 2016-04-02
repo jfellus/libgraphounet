@@ -26,6 +26,7 @@ std::string str_before(const std::string& s, const std::string& suffix);
 std::string str_between(const std::string& s, const std::string& prefix, const std::string& suffix);
 char* str_to_lower(const char* s);
 std::string str_replace(std::string subject, const std::string& search, const std::string& replace);
+bool str_has(const std::string& s, const std::string& needle);
 
 std::string cwd();
 
